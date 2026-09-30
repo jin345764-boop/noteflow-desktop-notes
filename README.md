@@ -1,11 +1,60 @@
-<div align="center">
+# 阿金便利贴 · NoteFlow 11
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+一款基于 React 18 + TypeScript + Vite + Tailwind CSS 构建的沉浸式 Windows 11 桌面便签系统。
 
-  <h1>Built with AI Studio</h2>
+## ✨ 核心特性
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+- 🖥️ **沉浸式 Win11 桌面交互**：完美复刻 Windows 11 桌面壁纸、亚克力磨砂玻璃质感、系统任务栏、开始菜单与天气组件。
+- 🖱️ **自由鼠标框选 & 联动平移**：在桌面空白区域按住鼠标拖拽即可拉出半透明选框，批量框选便签，框选后拖动任意便签实现全体多选联动平移。
+- 🎨 **15 款场景风格预设**：
+  - 自定义专属便签（#0 放在最前，支持全色域取色盘、莫兰蒂色系取色、边框圆角与透明度调节）
+  - 萌宠日记、极简工作、可爱手帐、Fluent亚克力、工作办公P0攻坚、松弛治愈、临时备忘录、考研沉浸学习、燃脂运动打卡、深夜赛博极客、美食日记、灵感画布、理财记账、旅行漫游等。
+- 🧲 **智能磁吸对齐**：便签拖拽靠近时自动触发 24px 磁吸吸附（左右紧贴、上下排列、网格对齐），附带吸附光效与清脆音效。
+- 🐶 **20 款高清矢量微表情贴纸**：包含搞怪假笑小丑、魔性狗头、吐舌幽灵、卡皮巴拉、小猫、小鸭等丰富角色装扮。
+- 💬 **角色台词气泡 & 自定义修改文字**：
+  - 角色头顶悬浮可爱台词气泡，点击气泡或铅笔图标即可直接输入修改自定义台词。
+  - 支持便签调色盘内同步编辑个性化台词。
+  - 顶部长条控制栏支持一键收起/展开所有角色气泡。
+- 🔊 **轻盈自然声效引擎**：内置 Web Audio API 合成的撕纸、清脆气泡、卡扣对齐与点击音效。
+- 💾 **本地持久化存储**：所有便签内容、位置坐标、待办清单状态、个性化设置实时自动保存至 LocalStorage，刷新不丢失。
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+---
 
-</div>
+## 🚀 本地运行与开发
+
+### 环境要求
+- Node.js >= 18.0.0
+- npm / yarn / pnpm / bun
+
+### 安装依赖
+```bash
+npm install
+```
+
+### 启动开发服务器
+```bash
+npm run dev
+```
+启动后在浏览器打开 `http://localhost:3000` 即可体验。
+
+### 构建生产版本
+```bash
+npm run build
+```
+
+---
+
+## 📦 推送到 GitHub 仓库
+
+如果你想将本项目推送到你自己的 GitHub 仓库，请执行以下命令：
+
+```bash
+# 1. 重命名主分支为 main
+git branch -M main
+
+# 2. 关联你的 GitHub 远程仓库（将 YOUR_USERNAME 和 YOUR_REPO 替换为你创建的仓库名）
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+
+# 3. 推送代码到 GitHub
+git push -u origin main
+```
