@@ -75,7 +75,7 @@ export function loadStickyNotes(): StickyNote[] {
     const raw = localStorage.getItem(STORAGE_KEY_NOTES);
     if (!raw) return INITIAL_STICKY_NOTES;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_STICKY_NOTES;
+    return Array.isArray(parsed) ? parsed : INITIAL_STICKY_NOTES;
   } catch {
     return INITIAL_STICKY_NOTES;
   }

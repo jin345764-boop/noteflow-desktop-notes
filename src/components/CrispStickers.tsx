@@ -1,4 +1,5 @@
 import React from 'react';
+import { PaperSticker, PAPER_STICKER_IDS } from './PaperStickers';
 import { StickerId } from '../types';
 
 interface CrispStickerProps {
@@ -13,6 +14,9 @@ export const CrispSticker: React.FC<CrispStickerProps> = ({
   size = 56 
 }) => {
   if (sticker === 'none') return null;
+  if (PAPER_STICKER_IDS.includes(sticker)) return <PaperSticker sticker={sticker} size={size} className={className} />;
+  const newStickers: Partial<Record<StickerId, string>> = {"flower":"<path d=\"M50 75V95M50 88Q24 70 22 87Q35 98 50 88\" stroke=\"#4c995f\" strokeWidth=\"5\"/><circle cx=\"50\" cy=\"29\" r=\"17\" fill=\"#f7b8cc\"/><circle cx=\"29\" cy=\"48\" r=\"17\" fill=\"#f7b8cc\"/><circle cx=\"71\" cy=\"48\" r=\"17\" fill=\"#f7b8cc\"/><circle cx=\"37\" cy=\"70\" r=\"17\" fill=\"#f7b8cc\"/><circle cx=\"63\" cy=\"70\" r=\"17\" fill=\"#f7b8cc\"/><circle cx=\"50\" cy=\"50\" r=\"16\" fill=\"#ffcf57\"/>","cloud":"<path d=\"M22 74C0 70 7 42 26 43C22 9 69 10 71 36C98 29 106 70 82 74Z\" fill=\"#e1f3ff\" stroke=\"#6b9cb7\" strokeWidth=\"4\"/><path d=\"M35 57Q40 61 45 57M59 57Q64 61 69 57\" stroke=\"#577a92\" strokeWidth=\"3\"/>","camera":"<rect x=\"9\" y=\"28\" width=\"82\" height=\"58\" rx=\"12\" fill=\"#719aab\"/><path d=\"M27 28L34 15H63L70 28\" fill=\"#aecad3\"/><circle cx=\"51\" cy=\"57\" r=\"23\" fill=\"#dceef0\"/><circle cx=\"51\" cy=\"57\" r=\"16\" fill=\"#304b65\"/><circle cx=\"45\" cy=\"51\" r=\"5\" fill=\"#91c6e1\"/><rect x=\"74\" y=\"37\" width=\"9\" height=\"6\" fill=\"#ffe1a5\"/>","planet":"<circle cx=\"50\" cy=\"50\" r=\"29\" fill=\"#c1a0e5\"/><path d=\"M29 34Q53 29 72 40M24 49Q50 41 78 54\" stroke=\"#9677c1\" strokeWidth=\"5\"/><ellipse cx=\"50\" cy=\"55\" rx=\"47\" ry=\"12\" transform=\"rotate(-24 50 55)\" stroke=\"#f3c880\" strokeWidth=\"7\"/>","envelope":"<rect x=\"8\" y=\"25\" width=\"84\" height=\"58\" rx=\"7\" fill=\"#fce7df\" stroke=\"#c99886\" strokeWidth=\"3\"/><path d=\"M10 30L50 60L90 30M10 80L36 58M90 80L64 58\" stroke=\"#c99886\" strokeWidth=\"3\"/><path d=\"M50 66C21 46 40 32 50 44C60 32 79 46 50 66\" fill=\"#dc8295\"/>","ribbon":"<path d=\"M29 52L18 92L36 85L46 98L54 60M71 52L82 92L64 85L54 98L46 60\" fill=\"#9f90df\"/><circle cx=\"50\" cy=\"38\" r=\"30\" fill=\"#f2c56f\" stroke=\"#dbab4e\" strokeWidth=\"4\"/><path d=\"M50 18L56 31L71 33L60 44L63 59L50 51L37 59L40 44L29 33L44 31Z\" fill=\"#fff1c4\"/>"};
+  if (newStickers[sticker]) return <svg width={size} height={size} viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg" dangerouslySetInnerHTML={{__html:newStickers[sticker]!}} />;
 
   switch (sticker) {
     case 'clown':

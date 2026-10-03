@@ -13,7 +13,9 @@ export type ThemeId =
   | 'foodie'    // 美食日记 · 舌尖美味 (Foodie Gourmet)
   | 'creative'  // 灵感画布 · 创意手稿 (Creative Studio)
   | 'finance'   // 理财记账 · 财富自由 (Wealth & Finance)
-  | 'travel';   // 旅行漫游 · 环游世界 (Travel Wanderlust)
+  | 'travel'
+  | 'notebook'
+  | 'notebookWarm' | 'home' | 'shopping' | 'reading' | 'redEditorial' | 'colorBlock' | 'appleGingham' | 'blueprint' | 'movieTicket' | 'concertTicket' | 'drinkTracker' | 'bookRecord' | 'lifePlan' | 'romanHoliday' | 'biscuit' | 'folder' | 'chatMemo' | 'traffic' | 'summerTag' | 'winterPost' | 'weekStrip' | 'pixelCard' | 'station' | 'abstractLab';
 
 export type StickerId = 
   | 'clown'     // 🤡 搞怪小丑假笑 (新增搞怪贴纸1)
@@ -39,9 +41,13 @@ export type StickerId =
   | 'headphone' // 🎧 音乐发烧耳机
   | 'rocket'    // 🚀 效率冲天火箭
   | 'teddy'     // 🧸 治愈泰迪小熊
+  | 'flower' | 'cloud' | 'camera' | 'planet' | 'envelope' | 'ribbon'
+  | 'pencil' | 'washi' | 'clip' | 'stamp' | 'clock' | 'ticket' | 'toaster' | 'teapot' | 'apple' | 'checkmark'
+  | 'bubbletea' | 'cryblob' | 'sideeye' | 'brainfog' | 'uglypotato' | 'crocodile' | 'deadline' | 'relaxword' | 'cheerword' | 'biscuit'
+  | 'battery' | 'snailmail' | 'riceball'
   | 'none';     // 无贴纸
 
-export type FontFamilyId = 'sans' | 'mono' | 'rounded' | 'serif';
+export type FontFamilyId = 'sans' | 'mono' | 'rounded' | 'serif' | 'kai' | 'mashanzheng' | 'longcang' | 'zhimangxing' | 'zcool' | 'jason1' | 'jason2' | 'jason3' | 'jason4' | 'jason5' | 'jason6' | 'jason7' | 'jason8' | 'jason9' | 'liujianmaocao' | 'xiaowei' | 'qingke' | 'fangsong' | 'dengxian' | 'jhenghei';
 
 export type FontSizeId = 'sm' | 'base' | 'lg';
 
@@ -77,6 +83,10 @@ export interface ChecklistItem {
 
 export interface StickyNote {
   id: string;
+  headerName?: string;
+  sizeLocked?: boolean;
+  titleFontSize?: number;
+  bodyFontSize?: number;
   title: string;
   titleEn?: string;
   subtitle?: string;
@@ -97,6 +107,7 @@ export interface StickyNote {
   fontSize: FontSizeId;
   fontFamily: FontFamilyId;
   sticker: StickerId;
+  stickerSize?: number;
   speechBubble?: string;
   speechBubbleEn?: string;
   hideSpeechBubble?: boolean;

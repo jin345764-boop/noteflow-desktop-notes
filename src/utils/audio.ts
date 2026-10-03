@@ -50,6 +50,25 @@ class SoundEngine {
   }
 
   // Soft uncheck sound
+  playCelebrate() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      [523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => {
+        const start = ctx.currentTime + index * 0.09;
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(frequency, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.linearRampToValueAtTime(0.065, start + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
+        oscillator.connect(gain); gain.connect(ctx.destination);
+        oscillator.start(start); oscillator.stop(start + 0.24);
+      });
+    } catch { /* Audio is optional. */ }
+  }
+
   playUnpop() {
     const ctx = this.getContext();
     if (!ctx) return;

@@ -18,6 +18,8 @@ try {
 
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
+import DesktopApp from './DesktopApp.tsx';
+import { isTauri } from '@tauri-apps/api/core';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(isTauri() ? <DesktopApp /> : <App />);

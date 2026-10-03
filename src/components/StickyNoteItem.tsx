@@ -1,10 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StickyNote, ThemeId, StickerId, FontSizeId, ChecklistItem } from '../types';
 import { DEFAULT_THEME_CONFIGS, MORANDI_NOTE_COLORS } from '../utils/themePresets';
 import { sound } from '../utils/audio';
+import { NOTE_FONTS } from '../desktopFonts';
 import { CrispSticker } from './CrispStickers';
 import { 
   Pin, 
+  GripVertical,
+  Lock,
+  Unlock,
   Minus, 
   Maximize2, 
   Palette, 
@@ -35,6 +39,12 @@ interface StickyNoteItemProps {
   onBatchMoveStart?: (activeId: string) => void;
   onBatchMove?: (dx: number, dy: number, activeId: string) => void;
   onBatchMoveEnd?: () => void;
+  desktop?: boolean;
+  onNativeDrag?: () => void;
+  onNewNote?: () => void;
+  onOpenSettings?: () => void;
+  settingsOnly?: boolean;
+  onCloseSettings?: () => void;
 }
 
 export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
@@ -49,11 +59,19 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
   onToggleSelect,
   onBatchMoveStart,
   onBatchMove,
-  onBatchMoveEnd
+  onBatchMoveEnd,
+  desktop = false,
+  onNativeDrag,
+  onNewNote,
+  onOpenSettings,
+  settingsOnly = false,
+  onCloseSettings
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [showPalette, setShowPalette] = useState(false);
+  const [showPalette, setShowPalette] = useState(settingsOnly);
+  const [completedEffect, setCompletedEffect] = useState<string | null>(null);
+  useEffect(()=>{if(!completedEffect)return; const timer=window.setTimeout(()=>setCompletedEffect(null),700); return ()=>window.clearTimeout(timer);},[completedEffect]);
   const [quickInput, setQuickInput] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [snapDirection, setSnapDirection] = useState<'horizontal' | 'vertical' | 'both' | null>(null);
@@ -67,6 +85,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
   const resizeStartPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
   const config = DEFAULT_THEME_CONFIGS[note.theme] || DEFAULT_THEME_CONFIGS.pet;
+  const displaySticker = ({cat:'cryblob',teddy:'uglypotato',ghost:'brainfog'} as Partial<Record<StickerId,StickerId>>)[note.sticker] || note.sticker;
 
   // Custom theme colors support
   const hasCustomBg = !!note.customBgColor;
@@ -82,9 +101,13 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
 
     onBringToFront(note.id);
 
-    // Shift-click toggles selection
     if (e.shiftKey && onToggleSelect) {
       onToggleSelect(note.id, e as unknown as React.MouseEvent);
+      return;
+    }
+    if (desktop && onNativeDrag) {
+      if (note.sizeLocked) return;
+      onNativeDrag();
       return;
     }
 
@@ -174,8 +197,8 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
 
       onUpdate({ ...note, x: newX, y: newY });
     } else if (isResizing) {
-      const dx = e.clientX - resizeStartPos.current.x;
-      const dy = e.clientY - resizeStartPos.current.y;
+      const dx = (desktop ? e.screenX : e.clientX) - resizeStartPos.current.x;
+      const dy = (desktop ? e.screenY : e.clientY) - resizeStartPos.current.y;
 
       const newWidth = Math.max(220, Math.min(600, resizeStartPos.current.width + dx));
       const newHeight = Math.max(160, Math.min(750, resizeStartPos.current.height + dy));
@@ -216,8 +239,8 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
     onBringToFront(note.id);
     setIsResizing(true);
     resizeStartPos.current = {
-      x: e.clientX,
-      y: e.clientY,
+      x: desktop ? e.screenX : e.clientX,
+      y: desktop ? e.screenY : e.clientY,
       width: note.width,
       height: note.height
     };
@@ -230,7 +253,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
     const updatedItems = note.items.map((it) => {
       if (it.id === itemId) {
         const nextDone = !it.done;
-        if (nextDone) sound.playPop();
+        if (nextDone) { setCompletedEffect(itemId); if (desktop) sound.playCelebrate(); else sound.playPop(); }
         else sound.playUnpop();
         return { ...it, done: nextDone };
       }
@@ -238,7 +261,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
     });
 
     const allDone = updatedItems.length > 0 && updatedItems.every(i => i.done);
-    if (allDone) {
+    if (allDone && !desktop) {
       setTimeout(() => sound.playChime(), 150);
     }
 
@@ -291,8 +314,8 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
     sound.playSnap();
     onUpdate({
       ...note,
-      width: 285,
-      height: 235
+      width: desktop ? 260 : 285,
+      height: desktop ? 220 : 235
     });
   };
 
@@ -338,33 +361,63 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
   const totalCount = note.items.length;
   const completedCount = note.items.filter(i => i.done).length;
 
+  const allDone = totalCount > 0 && completedCount === totalCount;
+  const previousDone = useRef(allDone);
+  const [celebrating, setCelebrating] = useState(false);
+  useEffect(() => {
+    if (allDone && !previousDone.current) { setCelebrating(true); if (desktop && !settingsOnly) sound.playChime(); }
+    previousDone.current = allDone;
+  }, [allDone]);
+  useEffect(() => {
+    if (!celebrating) return;
+    const timer = window.setTimeout(() => setCelebrating(false), 2200);
+    return () => window.clearTimeout(timer);
+  }, [celebrating]);
+  const stickerSize = note.collapsed ? 22 : (note.stickerSize || 28);
+
   const allThemesList = Object.keys(DEFAULT_THEME_CONFIGS) as ThemeId[];
 
-  const all20Stickers: { id: StickerId; label: string }[] = [
+  const allStickers: { id: StickerId; label: string }[] = [
     { id: 'none', label: lang === 'cn' ? '无贴纸' : 'None' },
-    { id: 'clown', label: '🤡 假笑小丑' },
-    { id: 'doge', label: '🐶 魔性狗头' },
-    { id: 'ghost', label: '👻 吐舌幽灵' },
+    { id: 'battery', label: '满格电量' },
+    { id: 'snailmail', label: '拖延小蜗' },
+    { id: 'riceball', label: '干饭团子' },
+    { id: 'bubbletea', label: '续命奶茶' },
+    { id: 'cryblob', label: '委屈团子' },
+    { id: 'sideeye', label: '斜眼打工人' },
+    { id: 'brainfog', label: '脑袋打结' },
+    { id: 'uglypotato', label: '丑萌土豆' },
+    { id: 'crocodile', label: '知识吞吞鳄' },
+    { id: 'deadline', label: '救命DDL' },
+    { id: 'relaxword', label: '摸鱼中' },
+    { id: 'cheerword', label: '冲鸭' },
+    { id: 'biscuit', label: '咬一口饼干' },
+    { id: 'flower', label: '🌼 花朵' },
+    { id: 'cloud', label: '☁️ 云朵' },
+    { id: 'camera', label: '📷 相机' },
+    { id: 'planet', label: '🪐 星球' },
+    { id: 'envelope', label: '💌 信封' },
+    { id: 'ribbon', label: '🏅 奖章' },
+    { id: 'stamp', label: '已完成印章' },
+    { id: 'pencil', label: '铅笔' },
     { id: 'capybara', label: '🍊 卡皮巴拉' },
-    { id: 'cat', label: '🐱 小猫' },
-    { id: 'duck', label: '🦆 大白鸭' },
-    { id: 'shiba', label: '🐕 柴犬' },
-    { id: 'bunny', label: '🐰 兔子' },
-    { id: 'sloth', label: '🦥 树懒' },
-    { id: 'penguin', label: '🐧 企鹅' },
-    { id: 'redpanda', label: '🐾 小熊猫' },
+    { id: 'toaster', label: '吐司机' },
+    { id: 'washi', label: '格纹胶带' },
+    { id: 'clip', label: '回形针' },
+    { id: 'clock', label: '小闹钟' },
+    { id: 'ticket', label: '电影票' },
+    { id: 'teapot', label: '茶壶' },
     { id: 'cafe', label: '☕ 咖啡' },
     { id: 'pomodoro', label: '🍅 番茄钟' },
     { id: 'books', label: '📚 书本' },
     { id: 'avocado', label: '🥑 牛油果' },
-    { id: 'meme', label: '🤪 表情包' },
+    { id: 'checkmark', label: '完成打勾' },
     { id: 'burger', label: '🍔 汉堡' },
     { id: 'gamepad', label: '🎮 游戏机' },
-    { id: 'sleepypig', label: '💤 瞌睡猪' },
+    { id: 'apple', label: '苹果' },
     { id: 'bulb', label: '💡 灵感灯' },
     { id: 'headphone', label: '🎧 耳机' },
     { id: 'rocket', label: '🚀 小火箭' },
-    { id: 'teddy', label: '🧸 泰迪熊' },
   ];
 
   // Calculated z-index: when palette is open, elevate to 9999 so it is never obscured by other notes!
@@ -374,16 +427,20 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
 
   return (
     <article
+      data-selected={isSelected}
       ref={cardRef}
+      data-note-theme={note.theme}
+      data-paper={note.theme === 'notebook' || note.theme === 'notebookWarm'}
       style={{
         transform: `translate3d(${note.x}px, ${note.y}px, 0)`,
         width: `${note.width}px`,
-        height: note.collapsed ? 'auto' : `${note.height}px`,
+        height: note.collapsed ? (desktop ? '32px' : 'auto') : `${note.height}px`,
         zIndex: computedZIndex,
         opacity: note.opacity ?? 0.95,
         borderRadius: `${note.borderRadius ?? 16}px`,
         ...customBgStyle,
-        ...customTextStyle
+        ...customTextStyle,
+        ...(desktop ? {fontFamily:NOTE_FONTS.find(font=>font.id===note.fontFamily)?.family} : {})
       }}
       className={`absolute select-none transition-shadow duration-150 ${!hasCustomBg ? config.bgClass : ''} ${!hasCustomBg ? config.borderClass : 'border'} ${!hasCustomBg ? config.textClass : ''} border shadow-[0_12px_32px_rgba(0,0,0,0.32)] hover:shadow-[0_18px_44px_rgba(0,0,0,0.4)] backdrop-blur-md flex flex-col ${
         isDragging ? 'cursor-grabbing scale-[1.02] shadow-[0_24px_48px_rgba(0,0,0,0.5)] ring-2 ring-indigo-400/60' : ''
@@ -404,9 +461,9 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
       )}
 
       {/* Crisp Vector Mascot Sticker Attachment */}
-      {note.sticker !== 'none' && (
+      {note.sticker !== 'none' && !desktop && (
         <div className="absolute -top-10 right-3 z-30 transform hover:rotate-6 transition-transform">
-          <CrispSticker sticker={note.sticker} size={54} />
+          <CrispSticker sticker={displaySticker} size={54} />
           {speechText && !note.hideSpeechBubble && (
             isEditingBubble ? (
               <div 
@@ -496,7 +553,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
       )}
 
       {/* Washi Tape Accents */}
-      {(note.washiTape || config.hasTape) && (
+      {(note.washiTape || config.hasTape) && !desktop && (
         <div className="absolute -top-2 left-6 w-20 h-4 washi-pattern-pink -rotate-2 rounded-xs shadow-xs flex items-center justify-center border-t border-b border-pink-300/40 z-20 pointer-events-none">
           <span className="text-[8px] text-[#9d174d] tracking-widest uppercase font-bold font-mono">
             {lang === 'cn' ? '★ 手帐 ★' : '★ DECO ★'}
@@ -508,10 +565,13 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
       <header
         className="flex items-center justify-between px-3.5 pt-2.5 pb-2 border-b border-black/5 cursor-grab active:cursor-grabbing shrink-0"
         onPointerDown={handlePointerDownHeader}
+        style={desktop && !note.collapsed && note.sticker !== 'none' ? {height: stickerSize + 8} : undefined}
       >
         {/* Left: Multi-select Checkbox & Category Indicator */}
         <div className="flex items-center gap-1.5 min-w-0">
-          {onToggleSelect && (
+          {desktop && <span title="拖动便签；Shift 点击多选，再拖动一起移动" className="shrink-0 cursor-grab"><GripVertical className="w-3 h-4" /></span>}
+          {desktop && note.sticker !== 'none' && <button type="button" className={`note-sticker-button shrink-0 ${celebrating ? 'sticker-celebrate' : ''}`} aria-label={lang === 'cn' ? '展开或收起贴纸台词' : 'Toggle sticker message'} aria-expanded={!note.hideSpeechBubble} title={`${completedCount}/${totalCount} 已完成 · 点击展开或收起台词`} style={{width:stickerSize,height:stickerSize,background:totalCount ? `conic-gradient(#79a581 ${completedCount / totalCount * 100}%, #8799ab25 0)` : undefined}} onClick={() => onUpdate({...note,hideSpeechBubble:!note.hideSpeechBubble})}><CrispSticker sticker={displaySticker} size={stickerSize - 3} /></button>}
+          {onToggleSelect && !desktop && (
             <button
               type="button"
               onClick={(e) => {
@@ -537,10 +597,12 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
             className="w-2 h-2 rounded-full shrink-0 shadow-xs"
             style={{ backgroundColor: note.customAccentColor || config.dotColor }}
           />
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider truncate opacity-85">
-            {rawThemeName}
-          </span>
-          {totalCount > 0 && !note.collapsed && (
+          {desktop ? <input aria-label="便签名称" title="直接修改便签名称，例如：日常生活"
+            value={note.headerName ?? rawThemeName}
+            onChange={e => onUpdate({ ...note, headerName: e.target.value })}
+            className="min-w-0 w-full bg-transparent text-[10px] font-bold focus:outline-none focus:border-b focus:border-current" /> :
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider truncate opacity-85">{rawThemeName}</span>}
+          {totalCount > 0 && !note.collapsed && !desktop && (
             <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-black/5 font-mono opacity-70">
               {completedCount}/{totalCount}
             </span>
@@ -549,23 +611,27 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
 
         {/* Right: Window Controls */}
         <div className="flex items-center gap-0.5 opacity-80 hover:opacity-100 transition-opacity">
+          {desktop && <button type="button" title="重新开始：保留文字，将全部任务设为未完成" aria-label="重新开始便签" className="w-5 h-5 rounded hover:bg-black/10 flex items-center justify-center" disabled={completedCount === 0} onClick={handleRestoreAllStrikethroughs}><RotateCcw className="w-3 h-3" /></button>}
+          {onNewNote && !desktop && <button type="button" title="新建独立便签" onClick={onNewNote}
+            className="w-5 h-5 rounded hover:bg-black/10 flex items-center justify-center"><Plus className="w-3 h-3" /></button>}
           {/* Style / Palette Settings */}
           <button
             type="button"
             className="w-5 h-5 rounded hover:bg-black/10 flex items-center justify-center transition-colors"
-            title={lang === 'cn' ? '定制主题、莫兰蒂色系与20款贴纸' : 'Style & Morandi Colors'}
+            title={lang === 'cn' ? '定制主题、莫兰蒂色系与贴纸' : 'Style & Morandi Colors'}
             onClick={(e) => {
               e.stopPropagation();
               onBringToFront(note.id);
               sound.playClick();
-              setShowPalette(!showPalette);
+              if (onOpenSettings) onOpenSettings();
+              else setShowPalette(!showPalette);
             }}
           >
             <Palette className="w-3 h-3" />
           </button>
 
           {/* Reset size to uniform 285x235 ("每个便签可以一键复位") */}
-          <button
+          {!desktop && <button
             type="button"
             className="w-5 h-5 rounded hover:bg-black/10 flex items-center justify-center transition-colors"
             title={lang === 'cn' ? '一键复位便签 (还原标准尺寸与状态)' : 'Reset Note Standard Size & State'}
@@ -575,10 +641,10 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
             }}
           >
             <RotateCcw className="w-2.5 h-2.5" />
-          </button>
+          </button>}
 
           {/* 一键还原未划线状态 (全部设为未完成) ("完成了之后有划线，可以一键还原没有划钱的状态") */}
-          {completedCount > 0 && (
+          {completedCount > 0 && !desktop && (
             <button
               type="button"
               className="w-5 h-5 rounded hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition-colors"
@@ -593,7 +659,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
           )}
 
           {/* Pin Toggle */}
-          <button
+          {!desktop && <button
             type="button"
             className={`w-5 h-5 rounded hover:bg-black/10 flex items-center justify-center transition-colors ${
               note.pinned ? 'text-amber-500 font-bold' : ''
@@ -606,13 +672,17 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
             }}
           >
             <Pin className={`w-3 h-3 ${note.pinned ? 'fill-current' : ''}`} />
-          </button>
+          </button>}
+          {desktop && <button type="button" title={note.sizeLocked ? '解锁位置和尺寸' : '锁定位置和尺寸'}
+            className="w-5 h-5 rounded hover:bg-black/10 flex items-center justify-center"
+            onClick={() => onUpdate({...note,sizeLocked:!note.sizeLocked})}>{note.sizeLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}</button>}
 
           {/* Fold / Unfold */}
           <button
             type="button"
             className="w-5 h-5 rounded hover:bg-black/10 flex items-center justify-center transition-colors"
             title={note.collapsed ? (lang === 'cn' ? '展开便签' : 'Expand') : (lang === 'cn' ? '折叠为胶囊 (不挡视野)' : 'Fold to pill')}
+            disabled={desktop && note.sizeLocked}
             onClick={(e) => {
               e.stopPropagation();
               sound.playClick();
@@ -623,7 +693,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
           </button>
 
           {/* Clear Done */}
-          {completedCount > 0 && !note.collapsed && (
+          {completedCount > 0 && !note.collapsed && !desktop && (
             <button
               type="button"
               className="w-5 h-5 rounded hover:bg-black/10 flex items-center justify-center transition-colors"
@@ -652,9 +722,10 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
           </button>
         </div>
       </header>
+      {desktop && !note.collapsed && speechText && !note.hideSpeechBubble && <button type="button" className="desktop-speech" title={speechText} onClick={() => onOpenSettings?.()}>{speechText}</button>}
 
       {/* Style & Customization Popup Menu (Z-INDEX: 10000 to prevent occlusion) */}
-      {showPalette && (
+      {showPalette && (!note.collapsed || settingsOnly) && (
         <aside 
           className="absolute top-10 right-2 z-[10000] w-76 bg-slate-900/98 backdrop-blur-2xl border border-white/25 rounded-2xl p-3.5 shadow-2xl text-white text-xs flex flex-col gap-2.5 animate-in fade-in zoom-in-95 max-h-[82vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
@@ -666,7 +737,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
             </span>
             <button
               className="text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10"
-              onClick={() => setShowPalette(false)}
+              onClick={() => onCloseSettings ? onCloseSettings() : setShowPalette(false)}
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -731,7 +802,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
           {/* 15 Themes Selector (Custom #0 at front) */}
           <div className="flex flex-col gap-1">
             <span className="text-[10px] text-slate-300 font-medium">
-              {lang === 'cn' ? '场景预设主题风格 (15款)' : '15 Scene Themes'}
+              {lang === 'cn' ? `场景预设主题风格 (${allThemesList.length}款)` : `${allThemesList.length} Scene Themes`}
             </span>
             <div className="grid grid-cols-3 gap-1 max-h-28 overflow-y-auto pr-1">
               {allThemesList.map((tId) => {
@@ -765,19 +836,20 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
             </div>
           </div>
 
-          {/* 20 Crisp Mascot Stickers */}
-          <div className="flex flex-col gap-1">
+          {/* Sticker choices */}
+          <div className="sticker-settings flex flex-col gap-1">
             <div className="flex justify-between items-center text-[10px] text-slate-300 font-medium">
-              <span>{lang === 'cn' ? '🐾 20 款高清矢量贴纸 (无锯齿)' : '🐾 20 Crisp Vector Stickers'}</span>
-              <span className="text-[9px] text-indigo-400 font-mono">20 Total</span>
+              <span>{lang === 'cn' ? `🐾 ${allStickers.length - 1} 款高清贴纸` : `🐾 ${allStickers.length - 1} Crisp Stickers`}</span>
+              <span className="text-[9px] text-indigo-400 font-mono">{allStickers.length - 1} Total</span>
             </div>
-            <div className="grid grid-cols-4 gap-1 max-h-36 overflow-y-auto pr-1">
-              {all20Stickers.map((st) => (
+            <label className="flex items-center justify-between text-[10px] text-slate-300">{lang === 'cn' ? '贴纸大小' : 'Sticker size'}<select aria-label="贴纸大小" className="bg-slate-800 rounded px-2 py-1" value={note.stickerSize || 28} onChange={e => onUpdate({...note,stickerSize:Number(e.target.value)})}><option value={22}>小巧</option><option value={28}>标准</option><option value={36}>醒目</option></select></label>
+            <div className="sticker-options grid grid-cols-4 gap-1 max-h-36 overflow-y-auto pr-1">
+              {allStickers.map((st) => (
                 <button
                   key={st.id}
                   type="button"
                   className={`py-1 px-1 rounded text-[8.5px] border transition-all truncate text-center ${
-                    note.sticker === st.id
+                    displaySticker === st.id
                       ? 'bg-indigo-600 text-white border-indigo-400 font-bold scale-102'
                       : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/15'
                   }`}
@@ -786,7 +858,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
                     onUpdate({ ...note, sticker: st.id });
                   }}
                 >
-                  {st.label}
+                  <span className="flex flex-col items-center gap-1"><CrispSticker sticker={st.id} size={28} />{st.label}</span>
                 </button>
               ))}
             </div>
@@ -834,15 +906,20 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
         </aside>
       )}
 
+      {desktop && !note.collapsed && allDone && <div className="completion-stamp paw-stamp" aria-label="猫爪已完成印章"><svg viewBox="0 0 120 110" fill="none"><ellipse cx="20" cy="39" rx="13" ry="18" transform="rotate(-25 20 39)" fill="#dfa8b9"/><ellipse cx="45" cy="22" rx="13" ry="18" transform="rotate(-8 45 22)" fill="#dfa8b9"/><ellipse cx="76" cy="22" rx="13" ry="18" transform="rotate(8 76 22)" fill="#dfa8b9"/><ellipse cx="101" cy="39" rx="13" ry="18" transform="rotate(25 101 39)" fill="#dfa8b9"/><path d="M31 62Q59 29 89 62Q114 97 86 102Q74 106 60 100Q46 106 34 102Q7 97 31 62" fill="#f2cbd6" stroke="#ba7f95" strokeWidth="2"/><text x="60" y="83" textAnchor="middle" fill="#9c5c75" fontSize="19" fontFamily="sans-serif" fontWeight="bold">已完成</text><path d="M38 90H83" stroke="#ba7f95" strokeWidth="2" strokeDasharray="2 3"/></svg></div>}
+      {desktop && celebrating && <div className="note-confetti" aria-hidden="true">{Array.from({length:24},(_,i)=><i key={i} style={{left:`${(i*37)%100}%`,background:['#e9ad9f','#91b8a0','#e5ca7b','#a5b6db'][i%4],animationDelay:`${i%6*.07}s`,transform:`rotate(${i*31}deg)`}} />)}</div>}
+      {desktop && !note.collapsed && totalCount > 0 && <div className="note-completion"><div className="note-progress-label" role="status"><span>{allDone ? (lang === 'cn' ? '已完成 ✓' : 'Completed ✓') : (lang === 'cn' ? '任务进度' : 'Progress')}</span><span>{completedCount}/{totalCount}</span></div><div className="note-progress-track" role="progressbar" aria-label="便签任务进度" aria-valuemin={0} aria-valuemax={totalCount} aria-valuenow={completedCount}><i style={{width:`${completedCount/totalCount*100}%`,backgroundColor:note.customAccentColor || config.accentColor}} /></div></div>}
+
       {/* Main Content Area */}
       {!note.collapsed && (
-        <div className="flex-1 flex flex-col p-3 overflow-hidden min-h-0">
+        <div className={`flex-1 flex flex-col p-3 overflow-hidden min-h-0 ${desktop ? 'compact-note-content' : ''}`}>
           {/* Note Title & Subtitle + Restore strikethrough action */}
           <div className="mb-2 shrink-0 flex items-center justify-between gap-1">
             <div className="flex-1 min-w-0">
               <input
                 type="text"
                 value={displayTitle}
+                style={desktop ? {fontSize:note.titleFontSize ?? 14} : undefined}
                 onChange={(e) => {
                   onUpdate({
                     ...note,
@@ -853,7 +930,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
                 className="w-full bg-transparent font-bold text-sm leading-tight border-b border-transparent hover:border-black/10 focus:border-indigo-400 focus:outline-none truncate"
                 placeholder={lang === 'cn' ? '便签标题...' : 'Note title...'}
               />
-              {displaySubtitle && (
+              {displaySubtitle && !desktop && (
                 <p className="text-[10px] opacity-65 truncate mt-0.5">
                   {displaySubtitle}
                 </p>
@@ -861,7 +938,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
             </div>
 
             {/* 一键还原未划线状态按钮 ("完成了之后有划线，可以一键还原没有划钱的状态") */}
-            {completedCount > 0 && (
+            {completedCount > 0 && !desktop && (
               <button
                 type="button"
                 onClick={handleRestoreAllStrikethroughs}
@@ -883,7 +960,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
               return (
                 <div
                   key={item.id}
-                  className="group flex items-start justify-between gap-1.5 py-0.5 rounded hover:bg-black/5 px-1 transition-colors"
+                  className={`group flex items-start justify-between gap-1.5 py-0.5 rounded hover:bg-black/5 px-1 transition-colors ${completedEffect === item.id ? 'task-completed-effect' : ''}`}
                 >
                   {isEditing ? (
                     <div className="flex items-center gap-1.5 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
@@ -918,6 +995,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
                       />
                       <span
                         onClick={(e) => handleStartEditItem(item, e)}
+                        style={desktop && note.bodyFontSize ? {fontSize:note.bodyFontSize} : undefined}
                         className={`${fontSizeClass} leading-tight break-all cursor-text flex-1 select-text ${
                           item.done ? 'line-through opacity-50' : 'opacity-90 font-medium'
                         } hover:opacity-100 hover:text-indigo-900 transition-colors`}
@@ -930,7 +1008,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
 
                   {/* Actions: Edit, Copy & Delete */}
                   {!isEditing && (
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <div className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ${desktop ? 'compact-item-actions' : ''}`}>
                       <button
                         type="button"
                         onClick={(e) => handleStartEditItem(item, e)}
@@ -996,7 +1074,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
       )}
 
       {/* Resize Handle Gripper */}
-      {!note.collapsed && (
+      {!note.collapsed && !(desktop && note.sizeLocked) && (
         <div
           onPointerDown={handlePointerDownResize}
           className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 opacity-40 hover:opacity-100"
