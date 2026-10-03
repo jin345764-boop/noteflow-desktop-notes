@@ -66,7 +66,7 @@ export const SystemInfoModal: React.FC<SystemInfoModalProps> = ({
             <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
               <div className="flex justify-between">
                 <span className="text-slate-400">{lang === 'cn' ? '操作系统' : 'Operating System'}</span>
-                <span className="font-medium text-white">Windows 11 Pro 64-bit (24H2)</span>
+                <span className="font-medium text-white">Windows 64-bit</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">{lang === 'cn' ? '渲染架构' : 'Rendering Architecture'}</span>
