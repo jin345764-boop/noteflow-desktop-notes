@@ -3,6 +3,12 @@ import { StickyNote, ThemeId, StickerId, FontSizeId, ChecklistItem } from '../ty
 import { DEFAULT_THEME_CONFIGS, MORANDI_NOTE_COLORS } from '../utils/themePresets';
 import { sound } from '../utils/audio';
 import { NOTE_FONTS } from '../desktopFonts';
+import { TaskOptions, TaskPriority } from './TaskOptions';
+import { PaperSurface, usePaperOpacity } from './PaperOpacity';
+import { useTaskFitHeight } from './useTaskFitHeight';
+import { VoiceInput } from './VoiceInput';
+import { CompletedStamp } from './CompletedStamp';
+import { orderTasks } from '../taskPlanning';
 import { CrispSticker } from './CrispStickers';
 import { 
   Pin, 
@@ -81,10 +87,14 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
   const [tempBubbleText, setTempBubbleText] = useState('');
 
   const cardRef = useRef<HTMLDivElement>(null);
+  const quickInputRef = useRef<HTMLInputElement>(null);
   const dragStartPos = useRef({ x: 0, y: 0, noteX: 0, noteY: 0 });
   const resizeStartPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
   const config = DEFAULT_THEME_CONFIGS[note.theme] || DEFAULT_THEME_CONFIGS.pet;
+  const paperColor=note.customBgColor||config.bgClass.match(/#[0-9a-fA-F]{6}/)?.[0]||'#ffffff';
+  usePaperOpacity(cardRef,note.opacity??1,`${note.theme}:${note.customBgColor||''}`);
+  useTaskFitHeight(cardRef,note,onUpdate,desktop&&!settingsOnly);
   const displaySticker = ({cat:'cryblob',teddy:'uglypotato',ghost:'brainfog'} as Partial<Record<StickerId,StickerId>>)[note.sticker] || note.sticker;
 
   // Custom theme colors support
@@ -201,7 +211,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
       const dy = (desktop ? e.screenY : e.clientY) - resizeStartPos.current.y;
 
       const newWidth = Math.max(220, Math.min(600, resizeStartPos.current.width + dx));
-      const newHeight = Math.max(160, Math.min(750, resizeStartPos.current.height + dy));
+      const newHeight = Math.max(desktop?280:160, Math.min(750, resizeStartPos.current.height + dy));
 
       onUpdate({ ...note, width: newWidth, height: newHeight });
     }
@@ -315,7 +325,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
     onUpdate({
       ...note,
       width: desktop ? 260 : 285,
-      height: desktop ? 220 : 235
+      height: desktop ? 280 : 235
     });
   };
 
@@ -343,7 +353,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
   const handleRestoreAllStrikethroughs = () => {
     sound.playClick();
     const restoredItems = note.items.map(it => ({ ...it, done: false }));
-    onUpdate({ ...note, items: restoredItems });
+    onUpdate({ ...note, items: restoredItems, taskCycle: (note.taskCycle || 0) + 1 });
   };
 
   // Renamed theme badge support
@@ -375,7 +385,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
   }, [celebrating]);
   const stickerSize = note.collapsed ? 22 : (note.stickerSize || 28);
 
-  const allThemesList = Object.keys(DEFAULT_THEME_CONFIGS) as ThemeId[];
+  const allThemesList = (Object.keys(DEFAULT_THEME_CONFIGS) as ThemeId[]).filter(id=>!['redEditorial','folder'].includes(id));
 
   const allStickers: { id: StickerId; label: string }[] = [
     { id: 'none', label: lang === 'cn' ? '无贴纸' : 'None' },
@@ -430,7 +440,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
       data-selected={isSelected}
       ref={cardRef}
       data-note-theme={note.theme}
-      data-paper={note.theme === 'notebook' || note.theme === 'notebookWarm'}
+      data-paper={note.theme === 'notebook'}
       style={{
         transform: `translate3d(${note.x}px, ${note.y}px, 0)`,
         width: `${note.width}px`,
@@ -451,6 +461,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
       onPointerUp={handlePointerUp}
       onClick={() => onBringToFront(note.id)}
     >
+      <PaperSurface/>
       {/* Snap Magnetic Guide line visual indicator */}
       {snapDirection && (
         <div className="absolute -inset-1 rounded-2xl border-2 border-cyan-400 pointer-events-none animate-pulse">
@@ -733,7 +744,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
           <div className="flex items-center justify-between pb-1.5 border-b border-white/10 font-bold">
             <span className="flex items-center gap-1.5 text-slate-100">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              {lang === 'cn' ? '定制主题、莫兰蒂色与贴纸' : 'Style, Morandi Colors & Stickers'}
+              {lang === 'cn' ? '纸张与贴纸' : 'Paper & Stickers'}
             </span>
             <button
               className="text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10"
@@ -746,23 +757,24 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
           {/* Morandi & Custom Colors (莫兰蒂绿色、灰色、黑色、橙色等多色可选) */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-[10px] text-slate-300 font-medium">
-              <span>{lang === 'cn' ? '🎨 莫兰蒂高雅色系 (绿/灰/黑/橙等)' : '🎨 Morandi Color Palette'}</span>
+              <span>{lang === 'cn' ? '纸张配色' : 'Paper colors'}</span>
               <label 
                 className="relative inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold text-[9px] shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer ring-1 ring-white/30"
                 title={lang === 'cn' ? '点击全彩调色盘自由选色' : 'Pick any color'}
               >
                 <Palette className="w-2.5 h-2.5" />
                 <span>{lang === 'cn' ? '调色盘' : 'Palette'}</span>
-                <span className="w-2.5 h-2.5 rounded-full border border-white" style={{ backgroundColor: note.customBgColor || '#9caf88' }} />
+                <span className="w-2.5 h-2.5 rounded-full border border-white" style={{ backgroundColor: paperColor }} />
                 <input
                   type="color"
-                  value={note.customBgColor || '#9caf88'}
+                  value={paperColor}
                   onChange={(e) => {
                     const color = e.target.value;
+                    const rgb=color.match(/\w{2}/g)!.map(value=>parseInt(value,16));
                     onUpdate({
                       ...note,
                       customBgColor: color,
-                      customTextColor: '#ffffff'
+                      customTextColor: rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>145?'#34383d':'#f1f5f9'
                     });
                   }}
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
@@ -906,7 +918,7 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
         </aside>
       )}
 
-      {desktop && !note.collapsed && allDone && <div className="completion-stamp paw-stamp" aria-label="猫爪已完成印章"><svg viewBox="0 0 120 110" fill="none"><ellipse cx="20" cy="39" rx="13" ry="18" transform="rotate(-25 20 39)" fill="#dfa8b9"/><ellipse cx="45" cy="22" rx="13" ry="18" transform="rotate(-8 45 22)" fill="#dfa8b9"/><ellipse cx="76" cy="22" rx="13" ry="18" transform="rotate(8 76 22)" fill="#dfa8b9"/><ellipse cx="101" cy="39" rx="13" ry="18" transform="rotate(25 101 39)" fill="#dfa8b9"/><path d="M31 62Q59 29 89 62Q114 97 86 102Q74 106 60 100Q46 106 34 102Q7 97 31 62" fill="#f2cbd6" stroke="#ba7f95" strokeWidth="2"/><text x="60" y="83" textAnchor="middle" fill="#9c5c75" fontSize="19" fontFamily="sans-serif" fontWeight="bold">已完成</text><path d="M38 90H83" stroke="#ba7f95" strokeWidth="2" strokeDasharray="2 3"/></svg></div>}
+      {desktop && !note.collapsed && allDone && <CompletedStamp/>}
       {desktop && celebrating && <div className="note-confetti" aria-hidden="true">{Array.from({length:24},(_,i)=><i key={i} style={{left:`${(i*37)%100}%`,background:['#e9ad9f','#91b8a0','#e5ca7b','#a5b6db'][i%4],animationDelay:`${i%6*.07}s`,transform:`rotate(${i*31}deg)`}} />)}</div>}
       {desktop && !note.collapsed && totalCount > 0 && <div className="note-completion"><div className="note-progress-label" role="status"><span>{allDone ? (lang === 'cn' ? '已完成 ✓' : 'Completed ✓') : (lang === 'cn' ? '任务进度' : 'Progress')}</span><span>{completedCount}/{totalCount}</span></div><div className="note-progress-track" role="progressbar" aria-label="便签任务进度" aria-valuemin={0} aria-valuemax={totalCount} aria-valuenow={completedCount}><i style={{width:`${completedCount/totalCount*100}%`,backgroundColor:note.customAccentColor || config.accentColor}} /></div></div>}
 
@@ -952,15 +964,15 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
           </div>
 
           {/* Checklist items scroll container ("便签上的文字可以修改，现在不能修改，只能删除") */}
-          <div className="flex-1 overflow-y-auto pr-1 space-y-1.5 min-h-[50px]">
-            {note.items.map((item) => {
+          <div className="task-list-scroll flex-1 overflow-y-auto pr-1 space-y-1.5 min-h-[50px]">
+            {(desktop ? orderTasks(note.items) : note.items).map((item) => {
               const itemText = lang === 'en' ? (item.textEn || item.text) : item.text;
               const isEditing = editingItemId === item.id;
 
               return (
                 <div
                   key={item.id}
-                  className={`group flex items-start justify-between gap-1.5 py-0.5 rounded hover:bg-black/5 px-1 transition-colors ${completedEffect === item.id ? 'task-completed-effect' : ''}`}
+                  className={`task-row group flex items-start justify-between gap-1.5 py-0.5 rounded hover:bg-black/5 px-1 transition-colors ${completedEffect === item.id ? 'task-completed-effect' : ''}`}
                 >
                   {isEditing ? (
                     <div className="flex items-center gap-1.5 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
@@ -989,16 +1001,18 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
                     <div className="flex items-start gap-2 flex-1 min-w-0">
                       <input
                         type="checkbox"
+                        aria-label={`完成 ${itemText}`}
                         checked={item.done}
                         onChange={() => handleToggleItem(item.id)}
                         className="mt-0.5 w-3.5 h-3.5 rounded text-indigo-600 focus:ring-0 cursor-pointer accent-indigo-600 shrink-0"
                       />
+                      {desktop && <TaskPriority item={item}/>}
                       <span
                         onClick={(e) => handleStartEditItem(item, e)}
                         style={desktop && note.bodyFontSize ? {fontSize:note.bodyFontSize} : undefined}
                         className={`${fontSizeClass} leading-tight break-all cursor-text flex-1 select-text ${
                           item.done ? 'line-through opacity-50' : 'opacity-90 font-medium'
-                        } hover:opacity-100 hover:text-indigo-900 transition-colors`}
+                        } hover:opacity-100 transition-colors`}
                         title={lang === 'cn' ? '点击可直接修改此项文字' : 'Click to edit text'}
                       >
                         {itemText}
@@ -1006,8 +1020,9 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
                     </div>
                   )}
 
+                  {desktop && !isEditing && <TaskOptions item={item} noteId={note.id} onEdit={e=>handleStartEditItem(item,e)} onCopy={()=>handleCopyText(itemText,item.id)} onDelete={e=>handleDeleteItem(item.id,e)}/>}
                   {/* Actions: Edit, Copy & Delete */}
-                  {!isEditing && (
+                  {!isEditing && !desktop && (
                     <div className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ${desktop ? 'compact-item-actions' : ''}`}>
                       <button
                         type="button"
@@ -1045,11 +1060,15 @@ export const StickyNoteItem: React.FC<StickyNoteItemProps> = ({
             <input
               type="text"
               value={quickInput}
+              ref={quickInputRef}
+              autoFocus={desktop && note.items.length === 0}
               onChange={(e) => setQuickInput(e.target.value)}
               onKeyDown={handleQuickAdd}
-              placeholder={lang === 'cn' ? '+ 按回车添加待办待记...' : '+ Press Enter to add...'}
+              placeholder={lang === 'cn' ? '+ 添加待办' : '+ Add task'}
+              title={lang === 'cn' ? '输入后按回车添加' : 'Press Enter to add'}
               className="flex-1 bg-black/5 border border-transparent focus:border-indigo-400 rounded-lg px-2 py-1 text-[11px] focus:outline-none"
             />
+            {desktop && <VoiceInput onActivate={()=>quickInputRef.current?.focus()}/>}
             {quickInput.trim() && (
               <button
                 type="button"

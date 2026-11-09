@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "NoteFlow",
-  "version": "1.15.0",
+  "version": "1.18.0",
   "identifier": "com.jin345764.noteflow",
   "build": {
     "frontendDist": "../dist",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "title": "阿金桌面便利贴",
-        "width": 640,
+        "width": 560,
         "height": 44,
         "resizable": false,
         "decorations": false,

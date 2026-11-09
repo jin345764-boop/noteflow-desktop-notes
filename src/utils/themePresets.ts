@@ -137,28 +137,24 @@ const ORIGINAL_THEME_CONFIGS: Record<Exclude<ThemeId,'redEditorial'|'colorBlock'
   custom: {
     id: 'custom',
     name: '自定义便签',
-    nameEn: 'Custom DIY Note',
-    badge: '自定义风格',
-    badgeEn: 'CUSTOM DIY',
+    nameEn: 'Custom Note',
+    badge: '自定义便签',
+    badgeEn: 'Custom Note',
     category: 'custom',
-    bgClass: 'bg-[#9caf88]/95',
-    borderClass: 'border-[#78866b]',
-    textClass: 'text-[#1f2e1b]',
-    accentColor: '#4a6741',
-    dotColor: '#4a6741',
-    defaultSticker: 'bulb',
-    defaultSpeech: '自由定制 ✨',
-    defaultSpeechEn: 'My Style ✨',
-    hasTape: true,
-    description: '自由选择莫兰蒂绿色、灰色、黑色、橙色等多款底色与贴纸，打造独一无二的专属便签',
-    descriptionEn: 'Customize with Morandi greens, grays, black, orange, and 20 stickers for unique notes',
+    bgClass: 'bg-[#ffffff]',
+    borderClass: 'border-[#dfe1e5]',
+    textClass: 'text-[#34383d]',
+    accentColor: '#7d8a81',
+    dotColor: '#7d8a81',
+    defaultSticker: 'none',
+    defaultSpeech: '',
+    defaultSpeechEn: '',
+    hasTape: false,
+    description: '白纸深灰字，从空白开始。',
+    descriptionEn: 'White paper, dark text, a fresh start.',
     keywords: ['自定义', '莫兰蒂色系', '自由配色', '个性专属'],
     keywordsEn: ['Custom', 'Morandi Colors', 'Unique', 'Personal DIY'],
-    defaultItems: [
-      { text: '自由切换莫兰蒂绿/灰/黑/橙等丰富底色 🎨', textEn: 'Pick Morandi green/gray/black/orange colors 🎨', done: false },
-      { text: '移动便签在下方自动智能磁吸对齐 🧲', textEn: 'Auto magnetic snap alignment when moved 🧲', done: false },
-      { text: '点击定制便签名称与自由更换 20 款贴纸 📝', textEn: 'Rename note & pick from 20 crisp vector stickers 📝', done: false }
-    ]
+    defaultItems: []
   },
 
   notebook:NOTEBOOK_THEME,
@@ -667,13 +663,13 @@ export function saveWorkbenchTitle(title: string) {
 
 export const DEFAULT_CUSTOM_TEMPLATE: CustomThemeTemplate = {
   name: '自定义便签',
-  bgColor: '#9caf88',
-  textColor: '#1f2e1b',
-  accentColor: '#4a6741',
-  sticker: 'bulb',
-  speech: '自由定制 ✨',
-  borderRadius: 16,
-  hasTape: true
+  bgColor: '#ffffff',
+  textColor: '#34383d',
+  accentColor: '#7d8a81',
+  sticker: 'none',
+  speech: '',
+  borderRadius: 12,
+  hasTape: false
 };
 
 export function loadCustomTemplate(): CustomThemeTemplate {
@@ -710,3 +706,39 @@ export function saveTopBarPos(pos: { x: number; y: number; isCollapsed: boolean 
     // Ignore
   }
 }
+
+// Work themes retain their IDs so existing note contents remain intact.
+Object.assign(DEFAULT_THEME_CONFIGS.notebookWarm, {"name":"石墨清单","nameEn":"Graphite List","badge":"石墨清单","badgeEn":"Graphite List","category":"work","description":"细线分隔与石墨灰，清楚列出今日工作","descriptionEn":"Graphite List for everyday work","bgClass":"bg-[#f7f7f5]","textClass":"text-[#343a40]","borderClass":"border-[#59636b]","accentColor":"#59636b","dotColor":"#59636b","defaultSticker":"none","hasTape":false,"defaultSpeech":"","defaultSpeechEn":"","keywords":["工作","简约"],"keywordsEn":["Work","Minimal"],"defaultItems":[{"text":"确认今天的优先事项","textEn":"确认今天的优先事项","done":false},{"text":"处理一项重要工作","textEn":"处理一项重要工作","done":false},{"text":"检查交付结果","textEn":"检查交付结果","done":false}]});
+Object.assign(DEFAULT_THEME_CONFIGS.healing, {"name":"雾灰计划","nameEn":"Mist Planner","badge":"雾灰计划","badgeEn":"Mist Planner","category":"work","description":"低饱和蓝灰，留出清晰的工作空间","descriptionEn":"Mist Planner for everyday work","bgClass":"bg-[#edf1f4]","textClass":"text-[#34424e]","borderClass":"border-[#7b93a5]","accentColor":"#7b93a5","dotColor":"#7b93a5","defaultSticker":"none","hasTape":false,"defaultSpeech":"","defaultSpeechEn":"","keywords":["工作","简约"],"keywordsEn":["Work","Minimal"],"defaultItems":[{"text":"整理本周安排","textEn":"整理本周安排","done":false},{"text":"确认关键时间节点","textEn":"确认关键时间节点","done":false},{"text":"更新工作进度","textEn":"更新工作进度","done":false}]});
+Object.assign(DEFAULT_THEME_CONFIGS.finance, {"name":"深蓝项目","nameEn":"Navy Project","badge":"深蓝项目","badgeEn":"Navy Project","category":"work","description":"深蓝底色与克制的对比，专注项目交付","descriptionEn":"Navy Project for everyday work","bgClass":"bg-[#202e40]","textClass":"text-[#e7edf3]","borderClass":"border-[#8ca9c9]","accentColor":"#8ca9c9","dotColor":"#8ca9c9","defaultSticker":"none","hasTape":false,"defaultSpeech":"","defaultSpeechEn":"","keywords":["工作","简约"],"keywordsEn":["Work","Minimal"],"defaultItems":[{"text":"明确项目范围","textEn":"明确项目范围","done":false},{"text":"跟进待确认事项","textEn":"跟进待确认事项","done":false},{"text":"提交本阶段成果","textEn":"提交本阶段成果","done":false}]});
+Object.assign(DEFAULT_THEME_CONFIGS.folder, {"name":"白纸会议","nameEn":"Meeting Notes","badge":"白纸会议","badgeEn":"Meeting Notes","category":"work","description":"白纸与单线标题栏，记录会议后的行动","descriptionEn":"Meeting Notes for everyday work","bgClass":"bg-[#ffffff]","textClass":"text-[#333d43]","borderClass":"border-[#647d91]","accentColor":"#647d91","dotColor":"#647d91","defaultSticker":"none","hasTape":false,"defaultSpeech":"","defaultSpeechEn":"","keywords":["工作","简约"],"keywordsEn":["Work","Minimal"],"defaultItems":[{"text":"整理会议要点","textEn":"整理会议要点","done":false},{"text":"确认负责人和截止时间","textEn":"确认负责人和截止时间","done":false},{"text":"发送后续行动清单","textEn":"发送后续行动清单","done":false}]});
+Object.assign(DEFAULT_THEME_CONFIGS.chatMemo, {"name":"沙色备忘","nameEn":"Sand Memo","badge":"沙色备忘","badgeEn":"Sand Memo","category":"work","description":"温和沙色与整齐留白，适合工作备忘","descriptionEn":"Sand Memo for everyday work","bgClass":"bg-[#f4f0e7]","textClass":"text-[#514d43]","borderClass":"border-[#a69578]","accentColor":"#a69578","dotColor":"#a69578","defaultSticker":"none","hasTape":false,"defaultSpeech":"","defaultSpeechEn":"","keywords":["工作","简约"],"keywordsEn":["Work","Minimal"],"defaultItems":[{"text":"记录需要跟进的信息","textEn":"记录需要跟进的信息","done":false},{"text":"回复重要消息","textEn":"回复重要消息","done":false},{"text":"检查遗漏事项","textEn":"检查遗漏事项","done":false}]});
+Object.assign(DEFAULT_THEME_CONFIGS.romanHoliday, {"name":"墨绿执行","nameEn":"Evergreen Work","badge":"墨绿执行","badgeEn":"Evergreen Work","category":"work","description":"墨绿侧边与干净正文，逐项推进工作","descriptionEn":"Evergreen Work for everyday work","bgClass":"bg-[#eaf0eb]","textClass":"text-[#314b3e]","borderClass":"border-[#607e6d]","accentColor":"#607e6d","dotColor":"#607e6d","defaultSticker":"none","hasTape":false,"defaultSpeech":"","defaultSpeechEn":"","keywords":["工作","简约"],"keywordsEn":["Work","Minimal"],"defaultItems":[{"text":"选定今天的重点","textEn":"选定今天的重点","done":false},{"text":"完成当前执行事项","textEn":"完成当前执行事项","done":false},{"text":"整理明天的工作","textEn":"整理明天的工作","done":false}]});
+Object.assign(DEFAULT_THEME_CONFIGS.winterPost, {"name":"银灰看板","nameEn":"Silver Board","badge":"银灰看板","badgeEn":"Silver Board","category":"work","description":"银灰分区与轻量边框，简洁查看进展","descriptionEn":"Silver Board for everyday work","bgClass":"bg-[#f1f2f3]","textClass":"text-[#454a50]","borderClass":"border-[#8a919b]","accentColor":"#8a919b","dotColor":"#8a919b","defaultSticker":"none","hasTape":false,"defaultSpeech":"","defaultSpeechEn":"","keywords":["工作","简约"],"keywordsEn":["Work","Minimal"],"defaultItems":[{"text":"查看任务进展","textEn":"查看任务进展","done":false},{"text":"处理阻塞问题","textEn":"处理阻塞问题","done":false},{"text":"同步最新状态","textEn":"同步最新状态","done":false}]});
+
+// Keep theme IDs stable so existing notes retain their contents and settings.
+const refinedPapers: Partial<Record<ThemeId, Partial<ThemeConfig>>> = {
+  minimal: { name:'纯白清单', nameEn:'Pure White', badge:'纯白清单', badgeEn:'Pure White', description:'清晰留白与细边框，适合日常工作。', descriptionEn:'Clean white space for everyday work.', bgClass:'bg-[#ffffff]', textClass:'text-[#303238]', borderClass:'border-[#dfe1e5]', accentColor:'#718c7d', dotColor:'#718c7d' },
+  code: { name:'深色专注', nameEn:'Dark Focus', badge:'深色专注', badgeEn:'Dark Focus', description:'石墨深色、柔和对比，安静地专注。', descriptionEn:'Graphite paper with gentle contrast.', bgClass:'bg-[#26282d]', textClass:'text-[#e7e9ed]', borderClass:'border-[#44474e]', accentColor:'#a1b9ac', dotColor:'#a1b9ac' },
+  fluent: { name:'磨砂便签', nameEn:'Frosted Glass', badge:'磨砂便签', badgeEn:'Frosted Glass', description:'轻透磨砂与柔和边缘，融入桌面。', descriptionEn:'Translucent frosted paper for the desktop.', bgClass:'bg-[#eff3f6]/80 acrylic-glass', textClass:'text-[#35414c]', borderClass:'border-white/70', accentColor:'#8299a9', dotColor:'#8299a9' },
+  work: { name:'方格荧光笔', nameEn:'Grid & Highlighter', badge:'方格荧光笔', badgeEn:'Grid & Highlighter', description:'浅灰方格配细荧光底线，重点一眼可见。', descriptionEn:'Fine graph paper with subtle highlighter strokes.', bgClass:'bg-[#fcfcfa]', textClass:'text-[#3e4446]', borderClass:'border-[#c8cccd]', accentColor:'#8b9d91', dotColor:'#8b9d91' },
+  notebookWarm: { name:'黑白横线', nameEn:'Monochrome Lines', badge:'黑白横线', badgeEn:'Monochrome Lines', description:'黑白标题、细横线，像一张整齐的工作纸。', descriptionEn:'A monochrome ruled work sheet.', bgClass:'bg-[#ffffff]', textClass:'text-[#30343b]', borderClass:'border-[#d4d7da]', accentColor:'#626b74', dotColor:'#626b74' },
+  healing: { name:'薄荷横线', nameEn:'Mint Ruled', badge:'薄荷横线', badgeEn:'Mint Ruled', description:'薄荷纸色与白色虚线，轻松写下今天。', descriptionEn:'Mint paper with light dashed lines.', bgClass:'bg-[#dfeee8]', textClass:'text-[#3b5a50]', borderClass:'border-[#bdd5c9]', accentColor:'#6a9c85', dotColor:'#6a9c85' },
+  folder: { name:'留白清单', nameEn:'Open List', badge:'留白清单', badgeEn:'Open List', description:'大留白、无横线，适合几件真正重要的事。', descriptionEn:'Generous spacing for the things that matter.', bgClass:'bg-[#ffffff]', textClass:'text-[#363b42]', borderClass:'border-[#e0e3e6]', accentColor:'#8b9da7', dotColor:'#8b9da7' },
+  chatMemo: { name:'暖砂点线', nameEn:'Sand Dotted', badge:'暖砂点线', badgeEn:'Sand Dotted', description:'暖白底、砂色点缀与虚线，简洁又温和。', descriptionEn:'Warm white with sand accents and dotted rules.', bgClass:'bg-[#faf7f0]', textClass:'text-[#65574a]', borderClass:'border-[#dfd3c4]', accentColor:'#b39a7d', dotColor:'#b39a7d' },
+  romanHoliday: { name:'侧栏清单', nameEn:'Side Margin', badge:'侧栏清单', badgeEn:'Side Margin', description:'窄色侧栏和齐整留白，适合项目执行。', descriptionEn:'A slim side margin for project checklists.', bgClass:'bg-[#f8fbf9]', textClass:'text-[#35483e]', borderClass:'border-[#d6e1db]', accentColor:'#719681', dotColor:'#719681' },
+  winterPost: { name:'交错条纹', nameEn:'Alternating Rows', badge:'交错条纹', badgeEn:'Alternating Rows', description:'淡灰交错行底，长清单也能轻松阅读。', descriptionEn:'Alternating light rows for longer lists.', bgClass:'bg-[#ffffff]', textClass:'text-[#454950]', borderClass:'border-[#dfe1e5]', accentColor:'#8c939f', dotColor:'#8c939f' },
+  colorBlock: { name:'索引卡片', nameEn:'Index Card', badge:'索引卡片', badgeEn:'Index Card', description:'小色签和淡横线，像一张随身索引卡。', descriptionEn:'A small index tab with fine rules.', bgClass:'bg-[#fffdfa]', textClass:'text-[#514b45]', borderClass:'border-[#ddd6cb]', accentColor:'#a99e8c', dotColor:'#a99e8c' },
+  study: { name:'装订笔记', nameEn:'Bound Notebook', badge:'装订笔记', badgeEn:'Bound Notebook', description:'左侧装订孔与浅蓝横线，适合学习和复盘。', descriptionEn:'Binding marks and blue rules for study notes.', bgClass:'bg-[#f4f8fc]', textClass:'text-[#3e5870]', borderClass:'border-[#bdccda]', accentColor:'#809bb3', dotColor:'#809bb3' },
+};
+for (const [id, changes] of Object.entries(refinedPapers)) {
+  Object.assign(DEFAULT_THEME_CONFIGS[id as ThemeId], changes, { defaultSticker:'none', defaultSpeech:'', defaultSpeechEn:'', hasTape:false });
+}
+const dailyWorkItems = [
+  { text:'确认今天的重点', textEn:'Choose today’s priorities', done:false },
+  { text:'完成一项重要工作', textEn:'Finish one important task', done:false },
+  { text:'整理明天的安排', textEn:'Prepare for tomorrow', done:false },
+];
+for (const id of ['minimal','code','fluent'] as ThemeId[]) DEFAULT_THEME_CONFIGS[id].defaultItems = dailyWorkItems;
+// Retired selection entry; older note data can still resolve its paper style.
+DEFAULT_THEME_CONFIGS.folder = {...DEFAULT_THEME_CONFIGS.minimal, id:'folder'};

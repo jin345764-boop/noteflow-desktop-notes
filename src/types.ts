@@ -79,6 +79,13 @@ export interface ChecklistItem {
   text: string;
   textEn?: string;
   done: boolean;
+  priority?: 1 | 2 | 3 | 4;
+  dueAt?: number;
+  remindMinutes?: number;
+  time?: string;
+  endTime?: string;
+  day?: string;
+  completionCycle?: number;
 }
 
 export interface StickyNote {
@@ -95,6 +102,12 @@ export interface StickyNote {
   items: ChecklistItem[];
   content?: string;
   isPlainNote?: boolean;
+  paperStyle?: 'cream' | 'ruled' | 'kraft' | 'glass' | 'index';
+  richContent?: string;
+  taskCycle?: number;
+  format?: 'checklist' | 'timeline' | 'weekly' | 'habitWeek' | 'habitMonth';
+  plannerStyle?: 'clean' | 'warm' | 'blue' | 'dark' | 'strip' | 'sevenDay';
+  plannerDate?: string;
   x: number;
   y: number;
   width: number;

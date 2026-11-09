@@ -1,0 +1,116 @@
+.planner-weekly .weekly-task-text { display:block; min-width:0; flex:1; resize:none; overflow:hidden; padding:3px 0; border:0; outline:none; background:transparent; color:inherit; font:inherit; line-height:1.6; overflow-wrap:anywhere; white-space:pre-wrap; }
+.planner-weekly .weekly-task-text.done { text-decoration:line-through; opacity:.45; }
+.planner-weekly .planner-task-line { align-items:flex-start; }
+.planner-weekly .planner-task-line > .check-hit { margin-top:2px; }
+.planner-weekly .planner-task-line > .task-priority-dot { margin-top:11px; }
+.planner-weekly .planner-task-line > .task-options { align-self:flex-start; margin-top:3px; }
+.planner-weekly .weekly-add-day { font-size:10px; opacity:.5; margin-right:4px; }
+.weekly-clean,.weekly-receipt,.weekly-coil,.weekly-index,.weekly-business { flex:1; min-height:0; display:flex; flex-direction:column; }
+.weekly-day-heading { display:flex; align-items:baseline; gap:8px; padding:12px 14px 4px; }
+.weekly-day-heading > b { font-size:14px; font-weight:600; }
+.weekly-day-heading > span { font-size:10px; opacity:.5; }
+.planner-weekly nav button { position:relative; }
+.planner-weekly nav button > span,.planner-weekly nav button > b,.planner-weekly nav button > small { display:block; }
+.planner-weekly nav button > small { font-size:9px; font-weight:400; opacity:.45; }
+.planner-weekly .planner-empty { font-size:11px; padding:12px 0; }
+
+/* A spacious single-day list with horizontal date navigation. */
+.planner-weekly.planner-style-clean { border-color:#e0e3e6; }
+.planner-weekly .weekly-clean-days { margin:6px 10px 0; gap:4px; }
+.planner-weekly .weekly-clean-days button { padding:7px 0; gap:5px; border-radius:8px; }
+.planner-weekly .weekly-clean-days button.active { background:#eef2ef; }
+.planner-weekly .weekly-clean-days button > b { font-size:15px; }
+.planner-weekly .weekly-clean-days button > small { display:none; }
+.weekly-clean .planner-scroll { padding:5px 12px 10px; }
+.weekly-clean .planner-task { margin:0; padding:9px 0; border-bottom:1px solid #7d89811a; }
+
+/* A narrow receipt, with dated slips and a total at the foot. */
+.planner-weekly.planner-style-warm { border-color:#cfc7b8; border-radius:3px!important; }
+.planner-weekly.planner-style-warm > header { border-bottom:1px dashed #a59b8966; }
+.weekly-receipt { position:relative; padding:0 10px 10px; }
+.weekly-receipt::after { content:''; height:5px; position:absolute; bottom:0; left:0; right:0; background:linear-gradient(135deg,transparent 50%,#9a907d36 50%) 0 0/8px 8px,linear-gradient(225deg,transparent 50%,#9a907d36 50%) 0 0/8px 8px; pointer-events:none; }
+.weekly-receipt-title { display:flex; justify-content:space-between; border-top:2px solid #71685a; border-bottom:1px dashed #a89f8a; padding:8px 2px; margin-top:3px; font:10px Consolas,monospace; letter-spacing:1.5px; }
+.weekly-receipt-title > span { opacity:.5; }
+.weekly-receipt-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border-bottom:1px dashed #b6ad9d; padding:6px 0; gap:1px; }
+.weekly-receipt-days button { padding:5px 0!important; font-size:8px; border-radius:0!important; }
+.weekly-receipt-days button.active { background:#ded5c451; border-bottom:2px solid #96866d; }
+.weekly-receipt-days button > b { font:12px Consolas,monospace; margin-top:3px; }
+.weekly-receipt-days button > small { display:none!important; }
+.weekly-receipt-date { padding:9px 2px 3px; font:10px Consolas,monospace; letter-spacing:1px; }
+.weekly-receipt-date > b { float:right; font-weight:400; }
+.weekly-receipt .planner-scroll { padding:0 2px; counter-reset:receipt-row; }
+.weekly-receipt .planner-task { display:flex; gap:5px; margin:0; padding:7px 0; border-bottom:1px dashed #a89f8a55; counter-increment:receipt-row; }
+.weekly-receipt .planner-task::before { content:counter(receipt-row,decimal-leading-zero); position:static; flex:none; width:13px; padding-top:8px; font:9px Consolas,monospace; opacity:.4; }
+.weekly-receipt .planner-task-line { flex:1; min-width:0; gap:2px; }
+.weekly-receipt-total { display:flex; justify-content:space-between; padding:10px 3px 2px; border-top:2px solid #8b806a; font:10px Consolas,'Microsoft YaHei',sans-serif; }
+.weekly-receipt-total b { font-weight:500; }
+
+/* All seven days, each with its own real task list. */
+.planner-weekly.planner-style-blue { border-color:#d6dde6; }
+.weekly-board-viewport { flex:1; min-height:0; overflow:auto; padding:4px 7px 8px; }
+.weekly-board { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); height:100%; min-height:240px; min-width:568px; gap:5px; }
+.weekly-board-column { display:flex; flex-direction:column; min-width:0; min-height:0; background:#e9edf24d; border:1px solid #dfe5ec; border-radius:6px; overflow:hidden; }
+.weekly-board-column.active { border-color:#b5c6d3; }
+.weekly-board-column > header { display:grid; grid-template-columns:1fr auto; gap:3px; padding:7px 5px; border-bottom:1px solid #dfe5ec; font:9px system-ui; }
+.weekly-board-column > header > b { grid-row:span 2; font-size:17px; font-weight:500; }
+.weekly-board-column > header > small { font-size:8px; opacity:.4; }
+.weekly-board-tasks { flex:1; min-height:0; overflow:auto; padding:5px 3px 0; scrollbar-width:thin; }
+.planner-weekly.planner-style-blue .planner-task { padding:5px 3px 2px; margin:0 0 5px; border:1px solid #dce3ea; background:#ffffffbb; border-radius:5px; }
+.weekly-board .planner-task-line { display:grid; grid-template-columns:13px minmax(0,1fr); gap:0 3px; }
+.weekly-board .planner-task-line > .check-hit { grid-row:1; grid-column:1; width:13px; height:21px; margin-top:1px; }
+.weekly-board .check-hit > input { width:11px; height:11px; }
+.weekly-board .planner-task-line > .weekly-task-text { grid-row:1; grid-column:2; width:100%; line-height:1.5; padding:1px 0; }
+.weekly-board .planner-task-line > .task-priority-dot { grid-row:2; grid-column:1; margin:7px 0 0 3px; }
+.weekly-board .planner-task-line > .task-options { grid-row:2; grid-column:2; margin:0; justify-content:flex-end; padding:0; }
+.weekly-board .task-options .task-more { padding:2px!important; }
+.weekly-board .task-deadline svg { width:10px; height:10px; }
+.planner-weekly .weekly-board-add { display:flex; align-items:center; justify-content:center; align-self:stretch; height:24px; border-top:1px solid #dfe5ec; border-radius:0; opacity:.5; }
+
+/* A vertical weekday rail and a business agenda on the right. */
+.planner-weekly.planner-style-dark { border-color:#d5dde3; }
+.planner-weekly.planner-style-dark > header { background:transparent; color:inherit; }
+.planner-weekly.planner-style-dark .planner-progress b { background:#8ca0ad; }
+.weekly-business { flex-direction:row; margin:2px 9px 7px; border:1px solid #e0e5e9; border-radius:6px; overflow:hidden; }
+.weekly-business-days { width:64px; flex:none; display:grid; grid-template-rows:repeat(7,1fr); background:#f3f5f7; border-right:1px solid #e0e5e9; }
+.weekly-business-days button { padding:5px 6px!important; display:grid; grid-template-columns:1fr auto; align-items:center; gap:3px; text-align:left; border-radius:0!important; font-size:9px; }
+.weekly-business-days button > b { font-size:13px; font-weight:500; }
+.weekly-business-days button > small { display:none!important; }
+.weekly-business-days button.active { background:#e3eaf0; box-shadow:inset 2px 0 #8ca1b1; }
+.weekly-business-main { flex:1; min-width:0; display:flex; flex-direction:column; }
+.weekly-business-main .weekly-day-heading { display:block; padding:12px 10px 8px; border-bottom:1px solid #e7ebee; }
+.weekly-business-main .weekly-day-heading > span { display:block; margin-top:4px; }
+.weekly-business-main .planner-scroll { padding:1px 8px; }
+.planner-weekly.planner-style-dark .planner-task { border-bottom:1px solid #dbe2e75e; margin:0; padding:7px 0; }
+
+/* Ruled journal paper bound by a real row of small rings. */
+.planner-weekly.planner-style-strip { border-color:#d8cdb8; border-radius:5px!important; }
+.planner-weekly.planner-style-strip > header { background:#f1e9d9; border-bottom:1px solid #dfd3bc; }
+.weekly-coil { position:relative; margin:8px 9px 3px; border:1px solid #e1d7c3; border-radius:5px; }
+.weekly-binding { display:flex; justify-content:space-around; height:15px; margin:-6px 6px 0; }
+.weekly-binding i { width:6px; height:13px; border:1px solid #a69c87; border-radius:5px; background:linear-gradient(90deg,#b5ab98,#fff9e9,#b2a690); }
+.weekly-coil-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; padding:6px 8px 2px; }
+.weekly-coil-days button { display:flex; flex-direction:column; align-items:center; gap:4px; padding:2px 0!important; font-size:8px; }
+.weekly-coil-days button > b { display:grid; place-items:center; width:23px; height:23px; border:1px solid #d6c8ae; border-radius:50%; font-size:11px; font-weight:400; }
+.weekly-coil-days button > small { display:none!important; }
+.weekly-coil-days button.active > b { border-color:#af9e7a; background:#ded2b9; }
+.weekly-coil .weekly-day-heading { padding:9px 11px 5px; }
+.weekly-coil .planner-scroll { padding:0 9px; background-image:repeating-linear-gradient(transparent 0 28px,#b8a78a1b 28px 29px); background-attachment:local; }
+.weekly-coil .planner-task { padding:6px 0; margin:0; border-bottom:1px solid #b8a78a35; }
+
+/* A dated index card, with its seven tabs above the writing area. */
+.planner-weekly.planner-style-sevenDay { border-color:#d4dacd; }
+.weekly-index { padding:3px 10px 5px; }
+.weekly-index-tabs { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; padding:0 3px; }
+.weekly-index-tabs button { border:1px solid #d7dece; border-bottom:0; border-radius:5px 5px 0 0!important; background:#e8ecdf; font-size:8px; padding:6px 0!important; }
+.weekly-index-tabs button:nth-child(even) { background:#e2e9e7; }
+.weekly-index-tabs button > b { font-size:10px; font-weight:400; margin-top:3px; }
+.weekly-index-tabs button > small { display:none!important; }
+.weekly-index-tabs button.active { background:#fffdf7; transform:translateY(1px); z-index:1; }
+.weekly-index-card { min-height:0; flex:1; display:flex; flex-direction:column; border:1px solid #d5ddcb; border-radius:5px; background:#fffdf755; }
+.weekly-index-heading { display:flex; align-items:center; gap:9px; padding:10px 13px 7px; border-bottom:1px solid #d5ddcb66; }
+.weekly-index-heading > b { font-size:29px; line-height:1; font-weight:400; opacity:.7; }
+.weekly-index-heading > span { font-size:11px; }
+.weekly-index-heading small { display:block; margin-top:3px; font-size:9px; opacity:.5; }
+.weekly-index-card .planner-scroll { padding:3px 10px; }
+.weekly-index-card .planner-task { border-bottom:1px solid #c2c9b748; margin:0; padding:7px 0; }
+.weekly-index-number { padding:6px 12px; text-align:right; font:9px Consolas,monospace; opacity:.4; }

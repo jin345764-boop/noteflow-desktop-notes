@@ -1,0 +1,39 @@
+.quick-note.quick-note { background:var(--quick-bg); color:var(--quick-text); border:1px solid color-mix(in srgb,var(--quick-text) 15%,transparent); border-radius:12px; }
+.quick-note.quick-note > header { height:32px; min-height:32px; border-bottom:1px solid color-mix(in srgb,var(--quick-text) 9%,transparent); padding:0 9px; }
+.quick-note.quick-note > header input { color:inherit; font-size:11px; }
+.quick-note.quick-note > header button { opacity:.65; }
+.quick-note.quick-note > header button:hover { opacity:1; }
+.quick-note.quick-ruled .quick-editor { line-height:29px; background-image:repeating-linear-gradient(transparent 0 28px,color-mix(in srgb,var(--quick-accent) 22%,transparent) 28px 29px); background-position:0 6px; }
+.quick-note.quick-index { border-left:5px solid var(--quick-accent); border-radius:3px 12px 12px 3px; }
+.quick-note.quick-index > header { border-top:0; }
+.quick-note.quick-kraft { border-color:color-mix(in srgb,var(--quick-text) 15%,transparent); }
+.quick-note.quick-kraft > header { background:color-mix(in srgb,var(--quick-text) 4%,transparent); }
+.quick-note.quick-glass { background:color-mix(in srgb,var(--quick-bg) 76%,transparent); backdrop-filter:blur(24px); border-color:#ffffffb3; box-shadow:inset 0 1px 0 #ffffff70; }
+.quick-note.quick-note .quick-editor { padding:15px 17px; }
+.quick-note.quick-note .quick-editor:empty::before { color:color-mix(in srgb,var(--quick-text) 40%,transparent); }
+.quick-note.quick-note footer { color:color-mix(in srgb,var(--quick-text) 50%,transparent); padding:4px 16px 7px; }
+.quick-note .quick-footer-actions { display:flex; align-items:center; gap:4px; }
+.quick-note .quick-save-record,.quick-note .quick-history { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; font:11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; padding:4px 5px; }
+.quick-note .quick-save-record { color:var(--quick-text); opacity:.75; }
+.quick-note .quick-save-record:disabled { opacity:.4; cursor:wait; }
+.quick-note .quick-save-record:hover,.quick-note .quick-history:hover { background:color-mix(in srgb,var(--quick-text) 6%,transparent); }
+.quick-note .quick-format { background:color-mix(in srgb,var(--quick-bg) 95%,white); }
+.quick-note .quick-format select { background:var(--quick-bg); color:var(--quick-text); border-color:color-mix(in srgb,var(--quick-text) 20%,transparent); }
+.quick-note .quick-appearance { position:absolute; z-index:10; right:9px; left:9px; top:37px; background:var(--quick-bg); color:var(--quick-text); border:1px solid color-mix(in srgb,var(--quick-text) 15%,transparent); border-radius:10px; box-shadow:0 8px 25px #00000014; padding:8px; font:11px system-ui; }
+.quick-note .quick-papers { background:transparent; padding:0 0 6px; gap:3px; }
+.quick-note .quick-papers button { border:1px solid transparent; border-radius:6px; padding:7px 5px; }
+.quick-note .quick-papers button[aria-pressed='true'] { border-color:color-mix(in srgb,var(--quick-accent) 50%,transparent); background:color-mix(in srgb,var(--quick-accent) 14%,transparent); }
+.quick-note .quick-papers .quick-paper-swatch { width:15px; height:15px; border-radius:3px; }
+.quick-note .quick-papers .swatch-ruled { background-image:repeating-linear-gradient(transparent 0 3px,#7a99b847 3px 4px)!important; }
+.quick-note .quick-papers .swatch-index { border-left:3px solid #6a9482; }
+.quick-note .quick-papers .swatch-glass { opacity:.65; }
+.quick-note .quick-color-presets { display:flex; gap:8px; padding:7px 3px; border-top:1px solid color-mix(in srgb,var(--quick-text) 9%,transparent); }
+.quick-note .quick-color-presets button { height:19px; width:19px; border-radius:50%; border:1px solid #81868b38; }
+.quick-note .quick-color-controls { display:flex; gap:12px; padding:6px 3px; }
+.quick-note .quick-color-controls label { display:flex; gap:5px; align-items:center; }
+.quick-note .quick-color-controls input { width:20px; height:20px; padding:0; border:0; background:transparent; cursor:pointer; }
+.quick-note .quick-opacity { display:flex; align-items:center; gap:8px; padding:8px 3px; }
+.quick-note .quick-opacity input { min-width:0; flex:1; accent-color:var(--quick-accent); }
+.quick-note .quick-opacity span { min-width:28px; text-align:right; }
+.quick-note .quick-appearance .quick-appearance-done { width:100%; padding:7px; background:color-mix(in srgb,var(--quick-text) 7%,transparent); border-radius:6px; }
+.quick-note button:focus-visible { outline:2px solid var(--quick-accent); outline-offset:1px; }

@@ -5,7 +5,7 @@ import { StickyNote, ThemeId, StickerId } from './types';
 import { DEFAULT_THEME_CONFIGS } from './utils/themePresets';
 import { sound } from './utils/audio';
 
-const defaults = { lang: 'cn' as 'cn' | 'en', soundEnabled: true, title: '阿金便利贴', themeRenames: {} as Record<string,string> };
+const defaults = { memoShortcut:'Alt+N', todoShortcut:'Alt+D', shortcutError:null as string|null, lang: 'cn' as 'cn' | 'en', soundEnabled: true, title: '阿金便利贴', themeRenames: {} as Record<string,string> };
 export function useDesktopPreferences() {
   const [prefs, setPrefs] = useState(defaults);
   const [error, setError] = useState('');
@@ -20,7 +20,7 @@ export function useDesktopPreferences() {
   return { prefs, update, error };
 }
 export function createThemeNote(theme: ThemeId, prefs: typeof defaults, opacity = .96, radius = 16, hasPet = true,
-  custom?: {bgColor:string; textColor:string; accentColor:string; name:string; sticker:StickerId}, playSound = true) {
+  custom?: {bgColor:string; textColor:string; accentColor:string; name:string; sticker:StickerId}, _playSound = true) {
   const cfg = DEFAULT_THEME_CONFIGS[theme];
   const template: Partial<StickyNote> = {
     theme, category: cfg.category, title: custom?.name || prefs.themeRenames[theme] || (prefs.lang === 'en' ? cfg.nameEn : cfg.name),
@@ -32,10 +32,10 @@ export function createThemeNote(theme: ThemeId, prefs: typeof defaults, opacity 
     washiTape:cfg.hasTape, opacity, borderRadius:radius,
     customBgColor:custom?.bgColor, customTextColor:custom?.textColor, customAccentColor:custom?.accentColor,
   };
-  if(theme === 'notebook' || theme === 'notebookWarm') {
+  if(theme === 'notebook') {
     template.fontFamily = theme === 'notebook' ? 'longcang' : 'zhimangxing';
     template.titleFontSize = 18; template.bodyFontSize = 18; template.width = 280; template.height = 280;
   }
-  if (playSound) sound.playPaper();
+
   return invoke('desktop_create',{template});
 }

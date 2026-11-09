@@ -18,7 +18,7 @@ html, body, #root { background: transparent !important; }
 .desktop-launcher .toolbar-language { padding: 2px; gap: 2px; border-radius: 12px; background: #ffffff12; font-size: 8px; }
 .toolbar-language span { padding: 1px 5px; border-radius: 10px; }
 .toolbar-language .active { background: #6963ff; color: white; }
-.desktop-launcher.folded { margin-right: 0; border-radius: 22px 0 0 22px; justify-content: flex-start; }
+.desktop-launcher.folded { margin-right: 4px; border-radius: 22px; justify-content: flex-start; }
 .folded .toolbar-brand b { max-width: 70px; }
 .folded .toolbar-brand small { font-size: 7px; padding: 1px 2px; }
 .toolbar-themes { margin: 6px 4px; padding: 16px; border: 1px solid #ffffff25; border-radius: 16px; background: #101725; color: #e2e8f0; font: 12px system-ui; }

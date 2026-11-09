@@ -1,36 +1,69 @@
 use super::*;
 
+#[derive(Default)]
+pub struct PanelState(pub Mutex<()>);
+
+pub(super) fn reveal_panel(app: &AppHandle, window: &tauri::WebviewWindow) -> Result<(), String> {
+    let monitor = app.get_webview_window("main").and_then(|main| main.current_monitor().ok().flatten())
+        .or_else(|| app.primary_monitor().ok().flatten()).ok_or("没有可用屏幕")?;
+    let area = monitor.work_area();
+    window.unminimize().map_err(|error| error.to_string())?;
+    let point = window.outer_position().map_err(|error| error.to_string())?;
+    let size = window.outer_size().map_err(|error| error.to_string())?;
+    let x = point.x.clamp(area.position.x, (area.position.x + area.size.width as i32 - size.width as i32).max(area.position.x));
+    let y = point.y.clamp(area.position.y, (area.position.y + area.size.height as i32 - size.height as i32).max(area.position.y));
+    window.set_position(PhysicalPosition::new(x, y)).map_err(|error| error.to_string())?;
+    window.show().map_err(|error| error.to_string())?;
+    window.set_focus().map_err(|error| error.to_string())
+}
+
 #[tauri::command]
 pub async fn desktop_panel(app: AppHandle, note_id: Option<String>, gallery: Option<bool>, focus: Option<bool>) -> Result<(), String> {
-    let (label, url, title) = if focus.unwrap_or(false) { ("focus".into(), "index.html?focus=1".into(), "番茄钟") } else if gallery.unwrap_or(false) { ("themes".into(), "index.html?themes=1".into(), "40款便签主题") } else { match note_id {
+    let panels = app.state::<PanelState>();
+    let _guard = panels.0.lock().unwrap();
+    let (label, url, title) = if focus.unwrap_or(false) { ("focus".into(), "index.html?focus=1".into(), "番茄钟") } else if gallery.unwrap_or(false) { ("themes".into(), "index.html?themes=1".into(), "新建便签") } else { match note_id {
         Some(id) => (format!("settings-{id}"), format!("index.html?settings={id}"), "便签设置"),
         None => ("manager".into(), "index.html?manager=1".into(), "管理便签"),
     } };
     if let Some(window) = app.get_webview_window(&label) {
-        window.show().map_err(|e| e.to_string())?;
-        return window.set_focus().map_err(|e| e.to_string());
+        return reveal_panel(&app, &window);
     }
-    WebviewWindowBuilder::new(&app, label, WebviewUrl::App(url.into())).title(title)
+    let window = WebviewWindowBuilder::new(&app, label, WebviewUrl::App(url.into())).title(title)
         .inner_size(if focus.unwrap_or(false) {490.0} else {760.0}, if focus.unwrap_or(false) {720.0} else {640.0}).min_inner_size(if focus.unwrap_or(false) {420.0} else {650.0},540.0).center().always_on_top(true)
-        .build().map_err(|e| e.to_string())?;
-    Ok(())
+        .visible(false).build().map_err(|e| e.to_string())?;
+    reveal_panel(&app, &window)
 }
 #[tauri::command]
-pub fn desktop_close_panel(window: tauri::WebviewWindow) -> Result<(), String> { window.destroy().map_err(|e| e.to_string()) }
+pub fn desktop_close_panel(window: tauri::WebviewWindow) -> Result<(), String> {
+    let panels = window.state::<PanelState>();
+    let _guard = panels.0.lock().unwrap();
+    if window.label() == "themes" { window.hide().map_err(|error| error.to_string()) }
+    else { window.destroy().map_err(|error| error.to_string()) }
+}
 #[tauri::command]
-pub fn desktop_toolbar(app: AppHandle, collapsed: bool, menu_open: Option<bool>) -> Result<(), String> {
+pub fn desktop_toolbar(app: AppHandle, collapsed: bool, menu_open: Option<bool>, menu_height: Option<f64>, width: Option<f64>) -> Result<(), String> {
     let window = app.get_webview_window("main").ok_or("Control bar missing")?;
     let monitor = window.current_monitor().map_err(|e| e.to_string())?.ok_or("No monitor")?;
     let area = monitor.work_area(); let scale = monitor.scale_factor();
     let p = window.outer_position().map_err(|e| e.to_string())?;
     let store = app.state::<Store>();
     let mut home = store.toolbar_home.lock().unwrap();
-    let width = if collapsed { 190.0 } else { 640.0 };
-    let height = if !collapsed && menu_open.unwrap_or(false) { (area.size.height as f64 / scale).min(580.0) } else { 44.0 };
+    let width = width.filter(|width| width.is_finite()).unwrap_or(if collapsed { 160.0 } else { 560.0 }).clamp(140.0,900.0).min(area.size.width as f64 / scale);
+    let height = if !collapsed && menu_open.unwrap_or(false) { (area.size.height as f64 / scale).min(menu_height.unwrap_or(500.0).clamp(100.0,580.0)) } else { 44.0 };
     let target = if collapsed {
+        let original = home.take().unwrap_or([p.x,p.y]);
+        [area.position.x + area.size.width as i32 - (width * scale).round() as i32, original[1]]
+    } else if menu_open.unwrap_or(false) {
         if home.is_none() { *home = Some([p.x,p.y]); }
-        [area.position.x + area.size.width as i32 - (width * scale) as i32, p.y]
-    } else { home.take().unwrap_or([p.x,p.y]) };
+        home.unwrap_or([p.x,p.y])
+    } else {
+        let target = home.take().unwrap_or([p.x,p.y]);
+        let old_size = window.outer_size().map_err(|error| error.to_string())?;
+        let right = area.position.x + area.size.width as i32;
+        if (target[0] + old_size.width as i32 - right).abs() <= (2.0 * scale).ceil() as i32 {
+            [right - (width * scale).round() as i32, target[1]]
+        } else { target }
+    };
     drop(home);
     window.set_size(LogicalSize::new(width,height)).map_err(|e| e.to_string())?;
     let x = target[0].clamp(area.position.x,(area.position.x+area.size.width as i32-(width*scale) as i32).max(area.position.x));
@@ -55,7 +88,7 @@ pub async fn desktop_restore(app: AppHandle, note_id: String) -> Result<(), Stri
     let note = {
         let store = app.state::<Store>(); let mut data = store.data.lock().unwrap();
         let i = data.archived.iter().position(|n| id(n) == note_id).ok_or("Archived note missing")?;
-        let note = data.archived.remove(i); data.notes.push(note.clone()); save(&store, &data)?; note
+        let mut note = data.archived.remove(i); minimum_height(&mut note); data.notes.push(note.clone()); save(&store, &data)?; note
     };
     open_note(&app, &note)?;
     app.emit("notes-changed", ()).map_err(|e| e.to_string())

@@ -2,17 +2,30 @@ import { useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { Plus, GripVertical, Eye, AlignRight, ChevronLeft, ChevronRight, ChevronDown, Volume2, VolumeX, Timer, Scan } from 'lucide-react';
+import { Plus, GripVertical, Eye, AlignRight, ChevronLeft, ChevronRight, Volume2, VolumeX, Timer, Scan, CalendarDays, FilePenLine, Settings2, MoreHorizontal } from 'lucide-react';
 import { StickyNoteItem } from './components/StickyNoteItem';
 import { StickyNote } from './types';
 import { INITIAL_STICKY_NOTES } from './utils/storage';
 import { DEFAULT_THEME_CONFIGS } from './utils/themePresets';
-import { ThemeId } from './types';
-import { useDesktopPreferences, createThemeNote } from './desktopPreferences';
+import { useDesktopPreferences } from './desktopPreferences';
 import { NOTE_FONTS } from './desktopFonts';
 import { FontFamilyId, FontSizeId } from './types';
 import { ThemeGallery } from './components/ThemeGallery';
 import {FocusTimer,useFocusTimer} from './components/FocusTimer';
+import { QuickNote } from './components/QuickNote';
+import { CompletionCalendar } from './components/CompletionCalendar';
+import { NoteManager } from './components/NoteManager';
+import { MemoHistory } from './components/MemoHistory';
+import { quickTemplate } from './quickNotes';
+import { PlannerNote } from './components/PlannerNote';
+import { LayoutPanel } from './components/LayoutPanel';
+import { Reminder } from './components/Reminder';
+import { TaskSettings } from './components/TaskOptions';
+import { OpacityControl } from './components/PaperOpacity';
+import { plannerStyles } from './taskPlanning';
+import './settingsPanel.css';
+import './planning.css';
+import './journal.css';
 import './desktop.css';
 import './noteThemes.css';
 
@@ -31,57 +44,44 @@ function legacyNotes(): StickyNote[] {
 }
 
 export default function DesktopApp() {
+  if (params.has('memoHistory')) return <MemoHistory />;
+  if (params.has('layout')) return <LayoutPanel />;
+  if (params.has('reminder')) return <Reminder />;
+  if (params.has('calendar')) return <CompletionCalendar />;
   if (params.has('focus')) return <FocusTimer />;
   if (params.has('themes')) return <ThemeGallery />;
   if (params.has('selection')) return <Selection />;
   if (params.has('manager')) return <NoteManager />;
-  const noteId = params.get('note') || params.get('settings');
+  const noteId = params.get('note') || params.get('settings') || params.get('task');
   return noteId ? <DesktopNote noteId={noteId} settings={params.has('settings')} /> : <Toolbar />;
 }
 
 function Toolbar() {
-  const [error, setError] = useState('');
-  const focus = useFocusTimer(true);
-  const [collapsed, setCollapsed] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { prefs, update: updatePrefs, error: prefsError } = useDesktopPreferences();
-  const call = (command: string, args?: Record<string, unknown>) => invoke(command, args).catch(e => setError(String(e)));
-  useEffect(() => {
-    try { call('desktop_init', { legacy: legacyNotes() }); } catch (e) { setError(String(e)); }
-  }, []);
-  const resize = async (fold: boolean, menu: boolean) => {
-    try { await invoke('desktop_toolbar',{collapsed:fold,menuOpen:menu}); setCollapsed(fold); setMenuOpen(menu); } catch(e) { setError(String(e)); }
-  };
-  const [titleDraft, setTitleDraft] = useState(prefs.title);
-  useEffect(() => setTitleDraft(prefs.title), [prefs.title]);
-  useEffect(() => {
-    const escape = (e:KeyboardEvent) => { if(e.key === 'Escape') resize(collapsed,false); };
-    window.addEventListener('keydown',escape); return () => window.removeEventListener('keydown',escape);
-  },[collapsed]);
-  return <><div className={`desktop-launcher ${collapsed ? 'folded' : ''}`} role="toolbar" aria-label="便签控制条">
-    {collapsed && <button title="展开控制条" onClick={() => resize(false,false)}><ChevronLeft size={15} /></button>}
-    <span title="拖动控制条" onPointerDown={() => { if(menuOpen) resize(collapsed,false); call('desktop_drag'); }}><GripVertical size={14} /></span>
-    <div className="toolbar-brand"><span>📋</span><input aria-label="控制条名称" title="直接修改名称，回车保存" value={titleDraft} onChange={e => setTitleDraft(e.target.value)} onBlur={() => {const title = titleDraft.trim() || '阿金便利贴'; setTitleDraft(title); if (title !== prefs.title) updatePrefs({title});}} onKeyDown={e => {if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') {e.preventDefault(); setTitleDraft(prefs.title);}}} /></div>
-    <button className="toolbar-theme-count" title="查看全部主题预览和介绍" onClick={() => {resize(collapsed,false); call('desktop_panel',{noteId:null,gallery:true});}}><small>{Object.keys(DEFAULT_THEME_CONFIGS).length} 款风格</small></button>
-    {!collapsed && <>
-      <button className="toolbar-new" title="选择主题新建便签" onClick={() => resize(false,!menuOpen)}><Plus size={14} />新建<ChevronDown size={12} /></button>
-      <button className="toolbar-focus" title="番茄钟：设置时长并记录专注时间" onClick={()=>call('desktop_panel',{noteId:null,focus:true})}><Timer size={14}/>{focus.state.deadline !== null ? `${Math.floor(focus.remaining/60).toString().padStart(2,'0')}:${(focus.remaining%60).toString().padStart(2,'0')}` : '番茄钟'}</button>
-      <button aria-label="框选便签" title="框选便签后，拖动选中便签的标题一起移动；Esc 取消" onClick={async()=>{await resize(false,false); await call('desktop_begin_selection');}}><Scan size={14}/><span>{prefs.lang === 'cn' ? '框选' : 'Select'}</span></button>
-      <button title="保留每张便签的尺寸，紧凑对齐全部便签" onClick={() => call('desktop_align')}><AlignRight size={14} /><span>{prefs.lang === 'cn' ? '紧凑对齐' : 'Align'}</span></button>
-      <button title={prefs.soundEnabled ? '关闭声音' : '打开声音'} onClick={() => updatePrefs({soundEnabled:!prefs.soundEnabled})}>{prefs.soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}</button>
-      <button className="toolbar-language" title="切换中英文" onClick={() => updatePrefs({lang:prefs.lang === 'cn' ? 'en' : 'cn'})}><span className={prefs.lang === 'cn' ? 'active' : ''}>CN</span><span className={prefs.lang === 'en' ? 'active' : ''}>EN</span></button>
-      <button title="隐藏或显示全部便签" onClick={() => call('desktop_visibility')}><Eye size={15} /></button>
-      <button title="自动收起到屏幕最右侧" onClick={() => resize(true,false)}>收起<ChevronRight size={13} /></button>
-    </>}
+  const [error,setError]=useState(''),[collapsed,setCollapsed]=useState(false),[panel,setPanel]=useState<'more'|null>(null);
+  const barRef=useRef<HTMLDivElement>(null),widths=useRef({expanded:560,folded:160}),lastSize=useRef('');
+  const openingRef=useRef(false),[opening,setOpening]=useState(false);
+  const {prefs,update:updatePrefs,error:prefsError}=useDesktopPreferences();
+  const focus=useFocusTimer(true),[title,setTitle]=useState(prefs.title);
+  const call=(command:string,args?:Record<string,unknown>)=>invoke(command,args).catch(e=>setError(String(e)));
+  useEffect(()=>{try{call('desktop_init',{legacy:legacyNotes()});}catch(e){setError(String(e));}},[]);
+  useEffect(()=>setTitle(prefs.title),[prefs.title]);
+  const resize=async(fold:boolean,next:'more'|null)=>{try{const width=widths.current[fold?'folded':'expanded'];await invoke('desktop_toolbar',{collapsed:fold,menuOpen:!!next,menuHeight:370,width});lastSize.current=`${fold}:${!!next}:${width}`;setCollapsed(fold);setPanel(next);}catch(e){setError(String(e));}};
+  useEffect(()=>{
+    const bar=barRef.current;if(!bar)return;
+    const sync=()=>{const width=Math.ceil(bar.getBoundingClientRect().width+8);widths.current[collapsed?'folded':'expanded']=width;const key=`${collapsed}:${!!panel}:${width}`;if(key===lastSize.current)return;lastSize.current=key;invoke('desktop_toolbar',{collapsed,menuOpen:!!panel,menuHeight:370,width}).catch(e=>{lastSize.current='';setError(String(e));});};
+    sync();const observer=new ResizeObserver(sync);observer.observe(bar);return()=>observer.disconnect();
+  },[collapsed,panel]);
+  useEffect(()=>{const escape=(e:KeyboardEvent)=>{if(e.key==='Escape')resize(collapsed,null);};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);},[collapsed]);
+  const action=async(command:string,args?:Record<string,unknown>)=>{await resize(false,null);await call(command,args);};
+  const openNew=async()=>{if(openingRef.current)return;openingRef.current=true;setOpening(true);setError('');try{if(panel){setPanel(null);invoke('desktop_toolbar',{collapsed:false,menuOpen:false,width:widths.current.expanded}).catch(e=>setError(String(e)));}await invoke('desktop_panel',{noteId:null,gallery:true});}catch(e){setError('无法打开新建便签：'+String(e));}finally{openingRef.current=false;setOpening(false);}};
+  return <><div ref={barRef} className={'desktop-launcher toolbar-simple '+(collapsed?'folded':'')} role="toolbar" aria-label="便签控制条">
+    <span title="拖动控制条" onPointerDown={async()=>{if(panel)await resize(collapsed,null);call('desktop_drag');}}><GripVertical size={14}/></span>
+    <div className="toolbar-brand"><span>📋</span><input aria-label="控制条名称" title="直接修改名称，回车保存" value={title} onChange={e=>setTitle(e.target.value)} onBlur={()=>{const t=title.trim()||'阿金便利贴';setTitle(t);if(t!==prefs.title)updatePrefs({title:t});}} onKeyDown={e=>{if(e.key==='Enter')e.currentTarget.blur();if(e.key==='Escape')setTitle(prefs.title);}}/></div>
+    {!collapsed&&<><button className="toolbar-new" title="新建便签：选择格式和主题" disabled={opening} aria-busy={opening} onClick={openNew}><Plus size={14}/>{opening?'打开中…':'新建'}</button><button title={'新建随手记 · '+prefs.memoShortcut} onClick={()=>action('desktop_create',{template:quickTemplate()})}><FilePenLine size={14}/>随手记</button><button title="完成日历：日、月、年统计" onClick={()=>action('desktop_calendar')}><CalendarDays size={14}/>日历</button><button title="番茄钟，手动确认完成具体事项" onClick={()=>action('desktop_panel',{noteId:null,focus:true})}><Timer size={14}/>{focus.state.deadline!==null?Math.floor(focus.remaining/60)+':'+(focus.remaining%60).toString().padStart(2,'0'):'番茄钟'}</button><button title="更多：框选、整理布局、声音和设置" aria-expanded={panel==='more'} onClick={()=>resize(false,panel==='more'?null:'more')}><MoreHorizontal size={16}/>更多</button></>}
+    <button className="toolbar-fold" title={collapsed?'展开控制条':'收起控制条'} aria-label={collapsed?'展开控制条':'收起控制条'} onClick={()=>resize(!collapsed,null)}>{collapsed?<ChevronLeft size={15}/>:<ChevronRight size={15}/>}</button>
   </div>
-    {menuOpen && <div className="toolbar-themes"><div className="theme-menu-heading">选择主题风格<button onClick={() => resize(false,false)}>关闭</button></div>
-      <div className="theme-menu-grid">{(Object.keys(DEFAULT_THEME_CONFIGS) as ThemeId[]).map(theme => {
-        const cfg = DEFAULT_THEME_CONFIGS[theme]; return <button key={theme} onClick={async () => {
-          try { await createThemeNote(theme,prefs); await resize(false,false); } catch(e) { setError(String(e)); }
-        }}><i style={{background:cfg.accentColor}} /><b>{prefs.themeRenames[theme] || (prefs.lang === 'cn' ? cfg.name : cfg.nameEn)}</b><small>{prefs.lang === 'cn' ? cfg.description : cfg.descriptionEn}</small></button>;
-      })}</div></div>}
-    {(error || prefsError) && <div role="alert" className="desktop-error">{error || prefsError}</div>}
-  </>;
+  {panel==='more'&&<div className="toolbar-popup more-menu"><div className="popup-heading"><b>窗口</b><button title="关闭更多菜单" onClick={()=>resize(false,null)}>关闭</button></div><div><button title="拖动框选，选中后拖动标题一起移动" onClick={()=>action('desktop_begin_selection')}><Scan size={14}/>框选便签</button><button title="整理现有列或重新分列，预览后应用" onClick={()=>action('desktop_layout_panel')}><AlignRight size={14}/>整理布局</button><button title="显示或隐藏全部桌面便签" onClick={()=>action('desktop_visibility')}><Eye size={14}/>显示／隐藏全部</button></div><div className="popup-heading"><b>设置</b></div><div><button title="打开或关闭应用音效" onClick={()=>updatePrefs({soundEnabled:!prefs.soundEnabled})}>{prefs.soundEnabled?<Volume2 size={14}/>:<VolumeX size={14}/>}声音：{prefs.soundEnabled?'开':'关'}</button><button title="切换界面语言" onClick={()=>updatePrefs({lang:prefs.lang==='cn'?'en':'cn'})}>语言：{prefs.lang==='cn'?'中文':'English'}</button><button title="管理便签、归档和快捷键" onClick={()=>action('desktop_panel',{noteId:null})}><Settings2 size={14}/>管理便签与快捷键</button></div></div>}
+  {(error||prefsError)&&<div role="alert" className="desktop-error">{error||prefsError}</div>}</>;
 }
 
 function DesktopNote({ noteId, settings }: { noteId: string; settings: boolean }) {
@@ -113,16 +113,25 @@ function DesktopNote({ noteId, settings }: { noteId: string; settings: boolean }
     }
     noteRef.current = next;
     setNote(next);
-    queue.current = queue.current.then(() => invoke<void>('desktop_update', { note: changes })).catch(showError);
+    const saved = queue.current.then(() => invoke<void>('desktop_update', { note: changes }));
+    queue.current = saved.catch(showError);
+    return saved;
+  };
+  const saveMemo = async (next:StickyNote) => {
+    await update(next);
+    await invoke('desktop_memo_save',{note:next});
   };
   const archive = () => {
     queue.current = queue.current.then(() => invoke<void>('desktop_archive', { noteId })).catch(showError);
   };
 
   if (!note) return error ? <div className="desktop-error">{error}</div> : null;
+  if (params.has('task')) return <TaskSettings note={note} itemId={params.get('item')||''} onUpdate={update}/>;
+  if (note.format && note.format!=='checklist' && !settings) return <PlannerNote note={note} onUpdate={update} onArchive={archive} onDrag={drag} selected={selected.includes(noteId)} error={error} onSettings={()=>invoke('desktop_panel',{noteId}).catch(showError)}/>;
+  if (note.isPlainNote) return <QuickNote note={note} onUpdate={update} onSave={saveMemo} onArchive={archive} onDrag={drag} selected={selected.includes(noteId)} error={error}/>;
   const top = 4;
   return <div className={settings ? 'desktop-settings' : 'desktop-note'}>
-    {settings && <div className="settings-names">
+    {settings && <><h1 className="settings-title">便签外观</h1><div className="settings-names">
       <label>便签名称<input value={note.headerName ?? DEFAULT_THEME_CONFIGS[note.theme].badge} onChange={e => update({ ...note, headerName: e.target.value })} /></label>
       <label>内容标题<input value={note.title} onChange={e => update({ ...note, title: e.target.value })} /></label>
       <label>字体<select value={note.fontFamily || 'sans'} onChange={e=>update({...note,fontFamily:e.target.value as FontFamilyId})}>{NOTE_FONTS.map(font=><option key={font.id} value={font.id}>{font.name}</option>)}</select></label>
@@ -130,7 +139,7 @@ function DesktopNote({ noteId, settings }: { noteId: string; settings: boolean }
       <label>正文字号<select value={note.bodyFontSize ? String(note.bodyFontSize) : note.fontSize || 'base'} onChange={e=>{
         const value=e.target.value; if(['sm','base','lg'].includes(value)) update({...note,fontSize:value as FontSizeId,bodyFontSize:undefined}); else update({...note,bodyFontSize:Number(value)});
       }}><option value="sm">原有小号 · 11 px</option><option value="base">原有标准 · 12 px</option><option value="lg">原有大号 · 14 px</option>{[16,18,20,24,28].map(size=><option key={size} value={size}>{size} px</option>)}</select></label>
-    </div>}
+    </div><OpacityControl note={note} onUpdate={update}/>{note.format&&note.format!=='checklist'&&<section className="settings-plan-styles"><h2>版式</h2>{plannerStyles(note.format).map(style=><button key={style.id} aria-pressed={(note.plannerStyle||'clean')===style.id} onClick={()=>update({...note,plannerStyle:style.id,customBgColor:style.background,customTextColor:style.color,fontFamily:style.id==='warm'?(note.format==='weekly'?'mono':'kai'):'sans'})}>{style.name}</button>)}</section>}</>}
     <StickyNoteItem note={{ ...note, x: 4, y: top }} index={0} allNotes={[note]}
       onUpdate={update} onDelete={archive} onBringToFront={() => {}}
       desktop lang={prefs.lang} themeRenames={prefs.themeRenames} onNativeDrag={drag} onNewNote={create} isSelected={selected.includes(noteId)}
@@ -159,22 +168,3 @@ function Selection() {
   </div>;
 }
 
-function NoteManager() {
-  const [data, setData] = useState<{notes: StickyNote[]; archived: StickyNote[]}>({notes:[],archived:[]});
-  const [error, setError] = useState('');
-  const reload = () => invoke<typeof data>('desktop_list').then(setData).catch(e => setError(String(e)));
-  useEffect(() => { reload(); const events = listen('notes-changed', reload); return () => { events.then(fn => fn()); }; }, []);
-  const call = (command: string, args: Record<string, unknown>) => invoke(command,args).then(reload).catch(e => setError(String(e)));
-  return <div className="note-manager">
-    <h1>管理便签</h1><p>每张便签的名称可以单独修改；关闭后可在下方恢复。</p>
-    {data.notes.length === 0 && <p>还没有便签，点击控制条“新建”即可添加。</p>}
-    {data.notes.map(note => <div className="manager-row" key={note.id}>
-      <input key={note.headerName ?? note.theme} aria-label="便签名称" defaultValue={note.headerName ?? DEFAULT_THEME_CONFIGS[note.theme].badge} onBlur={e => call('desktop_update',{note:{id:note.id,headerName:e.target.value}})} />
-      <span>{note.title}</span><button onClick={() => call('desktop_panel',{noteId:note.id})}>设置</button>
-      <button onClick={() => call('desktop_archive',{noteId:note.id})}>关闭</button>
-    </div>)}
-    <h2>已关闭的便签</h2>
-    {data.archived.map(note => <div className="manager-row" key={note.id}><span>{note.headerName ?? note.title}</span><button onClick={() => call('desktop_restore',{noteId:note.id})}>恢复</button></div>)}
-    {error && <p role="alert">{error}</p>}
-  </div>;
-}

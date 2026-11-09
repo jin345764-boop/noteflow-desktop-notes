@@ -1,0 +1,38 @@
+.quick-note { position:fixed; left:4px; top:4px; display:flex; flex-direction:column; overflow:hidden; border:1px solid #c9c9bf; border-radius:10px; background:#fffdf4; color:#343a40; font-family:system-ui,sans-serif; }
+.quick-note[data-selected='true'] { outline:2px solid #38bdf8; }
+.quick-note > header { height:32px; min-height:32px; display:flex; align-items:center; gap:4px; padding:0 8px; border-bottom:1px solid #838b851f; cursor:grab; font:11px system-ui; }
+.quick-note > header input { width:0; flex:1; background:transparent; outline:none; }
+.quick-note button { cursor:pointer; border:0; background:transparent; color:inherit; border-radius:4px; padding:3px; }
+.quick-note button:hover, .quick-note button[aria-pressed='true'] { background:#7180961c; }
+.quick-writing { flex:1; display:flex; flex-direction:column; min-height:0; }
+.quick-editor { flex:1; padding:14px 16px; overflow-y:auto; outline:none; line-height:1.8; overflow-wrap:anywhere; user-select:text; white-space:pre-wrap; }
+.quick-editor:empty::before { content:attr(data-placeholder); color:#888b86; pointer-events:none; font-size:14px; }
+.quick-editor ul { list-style:disc; padding-left:1.3em; }.quick-editor ol { list-style:decimal; padding-left:1.3em; }
+.quick-format { display:flex; flex-wrap:wrap; align-items:center; gap:3px; padding:5px 8px; border-bottom:1px solid #838b851f; font:11px system-ui; }
+.quick-format select { min-width:0; max-width:86px; height:23px; border:1px solid #88938a35; background:#ffffff90; border-radius:4px; }
+.quick-format select:nth-child(2) { width:42px; }.quick-format input[type='color'] { width:22px; height:22px; padding:2px; cursor:pointer; }
+.quick-note footer { display:flex; justify-content:space-between; align-items:center; padding:3px 18px 5px 14px; color:#8a8c85; font:10px system-ui; }
+.quick-papers { display:grid; grid-template-columns:1fr 1fr; padding:8px; gap:4px; background:#ffffffaa; font:11px system-ui; }
+.quick-papers button { text-align:left; padding:5px; }.quick-papers i { display:inline-block; width:14px; height:14px; border:1px solid #aaa5; margin-right:5px; vertical-align:middle; border-radius:3px; }
+.quick-ruled { background:#f3f8fd; border-color:#c5d5e2; }.quick-ruled .quick-editor { background:repeating-linear-gradient(transparent 0 28px,#6d93b51f 28px 29px); background-attachment:local; line-height:29px; }
+.quick-kraft { background:#eaddc4; border-color:#c5b899; color:#4d463b; }
+.quick-glass { background:#edf3f5db; backdrop-filter:blur(18px); border-color:#ffffffc9; }
+.quick-index { background:#fff; border-color:#d8ddd9; }.quick-index > header { border-top:4px solid #8aa79b; }
+.quick-resize { position:absolute; right:2px; bottom:2px; width:12px; height:12px; cursor:nwse-resize; background:linear-gradient(135deg,transparent 60%,#71809655 61%,#71809655 69%,transparent 70%); }
+.quick-error { color:#a33; font-size:11px; padding:4px; }
+.completion-calendar { height:100vh; overflow-y:auto; background:#fcfcfa; color:#323936; padding:28px 28px 20px; font:13px system-ui,sans-serif; }
+.completion-calendar > header { display:flex; align-items:center; justify-content:space-between; margin-bottom:25px; gap:10px; }
+.completion-calendar header p { color:#818982; margin:0 0 6px; font-size:12px; }.completion-calendar h1 { font-weight:400; font-size:28px; margin:0; letter-spacing:1px; }.completion-calendar h1 span { font-weight:650; margin-left:8px; }
+.calendar-nav { display:flex; align-items:center; gap:7px; }.calendar-nav > span { font-size:11px; color:#828a84; margin-right:12px; }
+.calendar-nav button { border:1px solid #e1e5df; background:#fff; border-radius:6px; padding:6px 9px; cursor:pointer; }
+.calendar-weekdays { display:grid; grid-template-columns:repeat(7,1fr); text-align:left; color:#929b94; font-size:11px; padding:0 0 9px; }.calendar-weekdays span { padding-left:10px; }.calendar-weekdays span:nth-last-child(-n+2) { color:#5b8d9c; }
+.calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border-top:1px solid #e7eae3; border-left:1px solid #e7eae3; }
+.calendar-grid > button { display:flex; flex-direction:column; align-items:stretch; min-width:0; height:108px; text-align:left; border:0; border-right:1px solid #e7eae3; border-bottom:1px solid #e7eae3; background:transparent; padding:7px 4px 4px; cursor:pointer; overflow:hidden; }
+.calendar-grid > button:hover { background:#f0f3ef; }.calendar-grid > button.chosen { background:#eff3ee; box-shadow:inset 0 0 0 1px #a4b7a8; }.calendar-grid > button.outside { opacity:.35; }
+.calendar-date { display:inline-flex; align-items:center; justify-content:center; width:24px; height:22px; margin:0 0 3px 2px; font-size:13px; }.calendar-grid button:nth-child(7n) .calendar-date,.calendar-grid button:nth-child(7n-1) .calendar-date { color:#5b8d9c; }
+.calendar-grid .today .calendar-date { background:#50786a; color:white !important; border-radius:6px; }
+.calendar-strip { display:block; color:#4a5650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:1px 4px; font-size:10px; line-height:14px; border-radius:2px; margin-bottom:2px; }
+.calendar-grid small { color:#828a84; font-size:9px; padding-left:4px; }
+.calendar-details { margin-top:20px; }.calendar-details h2 { font-size:13px; font-weight:550; }.calendar-details h2 span { font-size:11px; color:#849087; margin-left:12px; font-weight:400; }
+.calendar-details ul { list-style:none; padding:0; }.calendar-details li { display:flex; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid #e9ece6; }.calendar-details li svg { color:#6b9680; }.calendar-details li div { flex:1; }.calendar-details strong { display:block; font-size:12px; font-weight:500; }.calendar-details small { display:block; color:#919a93; font-size:10px; margin-top:3px; }.calendar-details time { color:#939b95; font-size:11px; }.calendar-empty { font-size:12px; color:#9ba39c; padding:12px 0; }.calendar-note { color:#9ba39c; font-size:10px; margin-top:18px; }
+.shortcut-settings { margin:0 0 24px; padding:16px; border:1px solid #dfe5df; border-radius:10px; background:#f7f9f5; color:#36443c; }.shortcut-settings h2 { font-size:14px; margin:0 0 8px; }.shortcut-settings p { font-size:11px; color:#79877e; }.shortcut-settings > div { display:flex; gap:12px; align-items:end; flex-wrap:wrap; }.shortcut-settings label { display:grid; gap:5px; font-size:12px; }.shortcut-settings input { width:145px; padding:8px; border:1px solid #ccd6cd; border-radius:5px; background:white; color:#36443c; }.shortcut-settings button { padding:8px 12px; border:1px solid #ccd6cd; border-radius:5px; background:white; cursor:pointer; }

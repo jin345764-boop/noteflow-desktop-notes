@@ -8,8 +8,10 @@
     "settings-*",
     "selection-*",
     "manager",
+    "memo-history",
     "themes",
-    "focus"
+    "focus",
+    "calendar", "layout", "reminder", "tasksettings"
   ],
   "permissions": [
     "core:default",
